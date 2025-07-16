@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Skywardkite/service-metrics.git/internal/service"
+	"github.com/Skywardkite/service-metrics/internal/service"
 )
 
 type Handler struct {

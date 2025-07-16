@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 
-	"github.com/Skywardkite/service-metrics.git/internal/handler"
-	"github.com/Skywardkite/service-metrics.git/internal/service"
-	"github.com/Skywardkite/service-metrics.git/internal/storage"
+	"github.com/Skywardkite/service-metrics/internal/handler"
+	"github.com/Skywardkite/service-metrics/internal/service"
+	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 func main() {

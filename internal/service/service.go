@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/Skywardkite/service-metrics.git/internal/storage"
+	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type MetricService struct {
