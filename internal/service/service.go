@@ -8,10 +8,10 @@ import (
 )
 
 type MetricService struct {
-	store *storage.MetricsStorage
+	store *storage.MemStorage
 }
 
-func NewMetricService(s *storage.MetricsStorage) *MetricService {
+func NewMetricService(s *storage.MemStorage) *MetricService {
 	return &MetricService{store: s}
 }
 
@@ -35,3 +35,27 @@ func (s *MetricService) UpdateMetric(metricType, metricName, metricValue string)
         return errors.New("unsupported metric type")
     }
 }
+
+func (s *MetricService) GetMetric(metricType, metricName string) (string, error) {
+	switch metricType {
+      case "gauge":
+        value, ok := s.store.GetGauge(metricName)
+        if !ok {
+          return "", errors.New("unknown metric")
+        }
+        return strconv.FormatFloat(value, 'f', 2, 64), nil
+      case "counter":
+        value, ok := s.store.GetCounter(metricName)
+        if !ok {
+          return "", errors.New("unknown metric")
+        }
+        return strconv.FormatInt(value, 10), nil
+      default:
+        return "", errors.New("unsupported metric type")
+    }
+}
+
+func (s *MetricService) GetAllMetrics() (map[string]float64, map[string]int64) {
+	gauges, counters := s.store.GetMetrics()
+	return gauges, counters
+} 

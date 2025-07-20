@@ -9,7 +9,7 @@ import (
 
 func TestMetricService_UpdateMetric(t *testing.T) {
 	type fields struct {
-		store *storage.MetricsStorage
+		store *storage.MemStorage
 	}
 	type args struct {
 		metricType  string
@@ -26,7 +26,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 		{
 			name: "successful gauge update",
 			fields: fields{
-				store: &storage.MetricsStorage{
+				store: &storage.MemStorage{
 					Gauge:   map[string]float64{"some_metric": 1.5},
 					Counter: make(map[string]int64),
 				},
@@ -41,7 +41,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 		{
 			name: "successful counter update",
 			fields: fields{
-				store: &storage.MetricsStorage{
+				store: &storage.MemStorage{
 					Gauge:   map[string]float64{"some_metric": 1.5},
 					Counter: make(map[string]int64),
 				},

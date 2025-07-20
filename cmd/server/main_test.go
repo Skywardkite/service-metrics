@@ -3,27 +3,22 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
+	"github.com/go-chi/chi/v5"
+	"gotest.tools/assert"
 )
 
 func TestMain(t *testing.T) {
-	store := storage.NewMetricsStorage()
+	store := storage.NewMemStorage()
 	metricService := service.NewMetricService(store)
 	h := handler.NewHandler(metricService)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/update/") {
-			h.UpdateHandler(w, r)
-			return
-		}
-		http.NotFound(w, r)
-	}))
-	defer ts.Close()
+	r := chi.NewRouter()
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 
 	tests := []struct {
 		name       string
@@ -33,19 +28,19 @@ func TestMain(t *testing.T) {
 	}{
 		{
 			name:       "valid update request",
-			url:        ts.URL + "/update/gauge/test_metric/123.45",
+			url:        "/update/gauge/test_metric/123.45",
 			method:     http.MethodPost,
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "invalid path",
-			url:        ts.URL + "/invalid/path",
+			url:        "/invalid/path",
 			method:     http.MethodPost,
 			wantStatus: http.StatusNotFound,
 		},
 		{
 			name:       "wrong method",
-			url:        ts.URL + "/update/gauge/test_metric/123.45",
+			url:        "/update/gauge/test_metric/123.45",
 			method:     http.MethodGet,
 			wantStatus: http.StatusMethodNotAllowed,
 		},
@@ -57,16 +52,9 @@ func TestMain(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != tt.wantStatus {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
-			}
+			rr := httptest.NewRecorder()
+			r.ServeHTTP(rr, req)
+			assert.Equal(t, tt.wantStatus, rr.Code, "unexpected status code")
 		})
 	}
 }

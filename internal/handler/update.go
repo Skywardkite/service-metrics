@@ -3,10 +3,10 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Skywardkite/service-metrics/internal/service"
+	"github.com/go-chi/chi/v5"
 )
 
 type Handler struct {
@@ -18,20 +18,9 @@ func NewHandler(s *service.MetricService) *Handler {
 }
 
 func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		res.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	parts := strings.Split(strings.Trim(req.URL.Path, "/"), "/")
-	if len(parts) != 4 || parts[0] != "update" {
-		res.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	metricType := parts[1]
-	metricName := parts[2]
-	metricValue := parts[3]
+	metricType := chi.URLParam(req, "metricType")
+	metricName := chi.URLParam(req, "metricName")
+	metricValue := chi.URLParam(req, "metricValue")
 		
 	if metricName == "" {
 		res.WriteHeader(http.StatusNotFound)
