@@ -8,10 +8,10 @@ import (
 )
 
 type MetricService struct {
-	store *storage.MemStorage
+	store *storage.MetricsStorage
 }
 
-func NewMetricService(s *storage.MemStorage) *MetricService {
+func NewMetricService(s *storage.MetricsStorage) *MetricService {
 	return &MetricService{store: s}
 }
 
@@ -22,14 +22,14 @@ func (s *MetricService) UpdateMetric(metricType, metricName, metricValue string)
         if err != nil {
           return errors.New("invalid gauge value")
         }
-		s.store.SetGauge(metricName, value)
+		    s.store.SetGauge(metricName, value)
         return nil
       case "counter":
         value, err := strconv.ParseInt(metricValue, 10, 64)
         if err != nil {
           return errors.New("invalid counter value")
         }
-		s.store.SetCounter(metricName, value)
+		    s.store.SetCounter(metricName, value)
         return nil
       default:
         return errors.New("unsupported metric type")

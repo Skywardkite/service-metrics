@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-    store := storage.NewMemStorage()
+    store := storage.NewMetricsStorage()
     metricService := service.NewMetricService(store)
     h := handler.NewHandler(metricService)
 
