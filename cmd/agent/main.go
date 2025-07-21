@@ -7,20 +7,19 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/handler"
 )
 
-const (
-    pollInterval   = 2 * time.Second
-    reportInterval = 10 * time.Second
-)
-
 func main() {
+    if err := parseFlags(); err != nil {
+        panic(err)
+    }
+    
     store := agent.NewAgentMetrics()
     lastReport := time.Now()
 
     for {
         agent.PollRuntimeMetrics(store)
 
-        if time.Since(lastReport) >= reportInterval {
-            handler.SendMetrics(store)
+        if time.Since(lastReport) >= (reportInterval) {
+            handler.SendMetrics(store, flagRunAddr)
             lastReport = time.Now()
         }
 

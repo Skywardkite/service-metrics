@@ -8,19 +8,19 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/agent"
 )
 
-const serverBaseURL = "http://localhost:8080"
+const serverBaseURL = "http://localhost:"
 
-func SendMetrics(storage *agent.AgentMetrics) {
+func SendMetrics(storage *agent.AgentMetrics, port string) {
     client := &http.Client{}
     gauges, counters := storage.GetAgentMetrics()
 
     for name, value := range gauges {
-        url := fmt.Sprintf("%s/update/gauge/%s/%f", serverBaseURL, name, value)
+        url := fmt.Sprintf("%s/update/gauge/%s/%f", serverBaseURL + port, name, value)
         sendPlainPost(client, url)
     }
 
     for name, delta := range counters {
-        url := fmt.Sprintf("%s/update/counter/%s/%d", serverBaseURL, name, delta)
+        url := fmt.Sprintf("%s/update/counter/%s/%d", serverBaseURL + port, name, delta)
         sendPlainPost(client, url)
     }
 }

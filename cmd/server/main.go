@@ -10,17 +10,20 @@ import (
 )
 
 func main() {
+	if err := parseFlagsServer(); err != nil {
+        panic(err)
+    }
+
     store := storage.NewMemStorage()
     metricService := service.NewMetricService(store)
     h := handler.NewHandler(metricService)
 
     r := chi.NewRouter()
-
     r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
 	r.Get("/", h.GetAllMetricsHandler)
 
-   if err := http.ListenAndServe(":8080", r); err != nil {
+   	if err := http.ListenAndServe(flagRunAddr, r); err != nil {
 		panic(err)
 	}
 }
