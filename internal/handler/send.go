@@ -4,23 +4,26 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
 )
-
-const serverBaseURL = "http://localhost"
 
 func SendMetrics(storage *agent.AgentMetrics, port string) {
     client := &http.Client{}
     gauges, counters := storage.GetAgentMetrics()
 
+    if !strings.HasPrefix(port, "http://") && !strings.HasPrefix(port, "https://") {
+        port = "http://" + port
+    }
+    
     for name, value := range gauges {
-        url := fmt.Sprintf("%s/update/gauge/%s/%f", serverBaseURL + port, name, value)
+        url := fmt.Sprintf("%s/update/gauge/%s/%f", port, name, value)
         sendPlainPost(client, url)
     }
 
     for name, delta := range counters {
-        url := fmt.Sprintf("%s/update/counter/%s/%d", serverBaseURL + port, name, delta)
+        url := fmt.Sprintf("%s/update/counter/%s/%d", port, name, delta)
         sendPlainPost(client, url)
     }
 }
