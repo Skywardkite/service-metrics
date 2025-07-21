@@ -8,7 +8,7 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/agent"
 )
 
-const serverBaseURL = "http://localhost:"
+const serverBaseURL = "http://localhost"
 
 func SendMetrics(storage *agent.AgentMetrics, port string) {
     client := &http.Client{}
