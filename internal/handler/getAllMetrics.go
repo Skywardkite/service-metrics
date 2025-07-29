@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"html/template"
 	"net/http"
-	"text/template"
 )
 
 type MetricsPageData struct {

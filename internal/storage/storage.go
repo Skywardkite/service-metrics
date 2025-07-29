@@ -1,6 +1,8 @@
 package storage
 
-import "maps"
+import (
+	"maps"
+)
 
 type MemStorage struct {
 	Gauge 		map[string]float64
@@ -35,7 +37,7 @@ func (s *MemStorage) GetCounter(name string) (int64, bool){
 func (s *MemStorage) GetMetrics() (map[string]float64, map[string]int64) {
 	gauges := make(map[string]float64)
 	maps.Copy(gauges, s.Gauge)
-		
+
 	counters := make(map[string]int64)
 	maps.Copy(counters, s.Counter)
 		
