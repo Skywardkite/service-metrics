@@ -50,7 +50,8 @@ func TestMain(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req, err := http.NewRequest(tt.method, tt.url, nil)
 			if err != nil {
-				t.Fatal(err)
+				t.Errorf("failed to create request: %v", err)
+				return
 			}
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, req)

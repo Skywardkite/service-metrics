@@ -61,7 +61,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				metricValue: "invalid",
 			},
 			wantErr:  true,
-			errorMessage: "invalid gauge value",
+			errorMessage: "invalid gauge value: invalid",
 		},
 		{
 			name: "invalid counter value",
@@ -71,7 +71,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				metricValue: "invalid",
 			},
 			wantErr:  true,
-			errorMessage: "invalid counter value",
+			errorMessage: "invalid counter value: invalid",
 		},
 		{
 			name: "unsupported metric type",
@@ -81,7 +81,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				metricValue: "20",
 			},
 			wantErr:  true,
-			errorMessage: "unsupported metric type",
+			errorMessage: "unsupported metric type: wrongCounter",
 		},
 		{
 			name: "empty metric type",
@@ -91,7 +91,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				metricValue: "20",
 			},
 			wantErr:  true,
-			errorMessage: "unsupported metric type",
+			errorMessage: "unsupported metric type: ",
 		},
 	}
 	for _, tt := range tests {

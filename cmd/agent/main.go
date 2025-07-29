@@ -1,28 +1,18 @@
 package main
 
 import (
-	"time"
+	"log"
 
-	"github.com/Skywardkite/service-metrics/internal/agent"
-	"github.com/Skywardkite/service-metrics/internal/handler"
+	"github.com/Skywardkite/service-metrics/internal/app"
+	"github.com/Skywardkite/service-metrics/internal/config/agentConfig"
 )
 
 func main() {
-    if err := parseFlags(); err != nil {
-        panic(err)
+    cfg, err := agentConfig.ParseFlags()
+    if err != nil {
+        log.Fatal("Error to parse flags:", err)
     }
     
-    store := agent.NewAgentMetrics()
-    lastReport := time.Now()
-
-    for {
-        agent.PollRuntimeMetrics(store)
-
-        if time.Since(lastReport) >= (reportInterval) {
-            handler.SendMetrics(store, flagRunAddr)
-            lastReport = time.Now()
-        }
-
-        time.Sleep(pollInterval)
-    }
+    a := app.NewApp(&cfg)
+    a.Run()
 }

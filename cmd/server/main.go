@@ -1,8 +1,10 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
@@ -10,8 +12,9 @@ import (
 )
 
 func main() {
-	if err := parseFlagsServer(); err != nil {
-        panic(err)
+	cfg, err := serverconfig.ParseFlags()
+    if err != nil {
+        log.Fatal("Error to parse flags:", err)
     }
 
     store := storage.NewMemStorage()
@@ -22,8 +25,7 @@ func main() {
     r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
 	r.Get("/", h.GetAllMetricsHandler)
-
-   	if err := http.ListenAndServe(flagRunAddr, r); err != nil {
-		panic(err)
+   	if err := http.ListenAndServe(cfg.FlagRunAddr, r); err != nil {
+		log.Fatal("Error to listen server:", err)
 	}
 }

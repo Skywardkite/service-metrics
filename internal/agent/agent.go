@@ -69,3 +69,9 @@ func PollRuntimeMetrics(storage *AgentMetrics) {
 	storage.SetAgentGauge("RandomValue", rand.Float64()*1000)
 	storage.SetAgentCounter("PollCount")
 }
+
+func (s *AgentMetrics) ClearAgentCounter() {
+	for k := range s.Counter {
+		s.Counter[k] = 0
+	}
+}

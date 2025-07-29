@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -33,8 +34,8 @@ func Test_sendPlainPost(t *testing.T) {
 			},
 			client:        &http.Client{},
 			url:           "/test",
-			wantErr:   true,
-			errorMessage: "non-OK response status",
+			wantErr:  		true,
+			errorMessage: fmt.Sprintf("non-OK response status: %d", http.StatusInternalServerError),
 		},
 		{
 			name: "invalid URL",

@@ -21,7 +21,7 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	metricType := chi.URLParam(req, "metricType")
 	metricName := chi.URLParam(req, "metricName")
 	metricValue := chi.URLParam(req, "metricValue")
-		
+
 	if metricName == "" {
 		res.WriteHeader(http.StatusNotFound)
 		return

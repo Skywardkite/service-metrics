@@ -1,28 +1,34 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"text/template"
 )
+
+type MetricsPageData struct {
+	Gauges    map[string]float64
+	Counters  map[string]int64
+}
 
 func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Request) {
 	gauges, counters := h.service.GetAllMetrics()
 
+    data := MetricsPageData{
+		Gauges:    gauges,
+		Counters:  counters,
+	}
+
+    tmpl, err := template.ParseFiles("internal/templates/metrics.html")
+    if err != nil {
+        res.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
     res.Header().Set("Content-Type", "text/html")
     res.WriteHeader(http.StatusOK)
 
-    fmt.Fprintln(res, "<!DOCTYPE html>")
-    fmt.Fprintln(res, "<html><head><title>Metrics</title></head><body>")
-    fmt.Fprintln(res, "<h1>Current Metrics</h1>")
-    fmt.Fprintln(res, "<h2>Gauges</h2><ul>")
-    for name, value := range gauges {
-        fmt.Fprintf(res, "<li>%s: %v</li>\n", name, value)
-    }
-    fmt.Fprintln(res, "</ul>")
-    fmt.Fprintln(res, "<h2>Counters</h2><ul>")
-    for name, value := range counters {
-        fmt.Fprintf(res, "<li>%s: %v</li>\n", name, value)
-    }
-    fmt.Fprintln(res, "</ul>")
-    fmt.Fprintln(res, "</body></html>")
+    if err := tmpl.Execute(res, data); err != nil {
+        res.WriteHeader(http.StatusInternalServerError)
+        return
+	}
 }
