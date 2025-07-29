@@ -43,7 +43,7 @@ func (s *MetricService) GetMetric(metricType, metricName string) (string, error)
         if !ok {
           return "", fmt.Errorf("unknown metric: %s", metricName)
         }
-        return strconv.FormatFloat(value, 'f', 3, 64), nil
+        return strconv.FormatFloat(value, 'f', 2, 64), nil
       case "counter":
         value, ok := s.store.GetCounter(metricName)
         if !ok {
