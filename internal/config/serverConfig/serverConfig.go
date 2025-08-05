@@ -3,6 +3,7 @@ package serverconfig
 import (
 	"errors"
 	"flag"
+	"fmt"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -14,8 +15,9 @@ type Config struct {
 func ParseFlags() (Config, error){
     var cfg Config
 
+	fmt.Println("cfg", cfg.FlagRunAddr)
 	err := env.Parse(&cfg)
-    if err != nil {
+    if err != nil || cfg.FlagRunAddr == "" {
 		flag.StringVar(&cfg.FlagRunAddr, "a", ":8080", "address and port to run server")
 		flag.Parse()
 
@@ -24,5 +26,6 @@ func ParseFlags() (Config, error){
 		}
 	}
 
+	fmt.Println("cfg", cfg.FlagRunAddr)
     return cfg, nil
 }

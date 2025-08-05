@@ -25,7 +25,7 @@ func ParseFlags() (AgentConfig, error){
 	var agentConfig AgentConfig
 
 	err := env.Parse(&cfg)
-    if err != nil {
+    if err != nil || cfg.FlagRunAddr == "" {
         flag.StringVar(&cfg.FlagRunAddr, "a", ":8080", "address and port to run server")
 		flag.IntVar(&cfg.ReportInterval, "r", 10, "frequency of sending metrics")
 		flag.IntVar(&cfg.PollInterval, "p", 2, "metrics polling frequency")
