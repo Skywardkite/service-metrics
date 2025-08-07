@@ -1,8 +1,8 @@
 package serverconfig
 
 import (
-	"errors"
 	"flag"
+	"os"
 )
 
 type Config struct {
@@ -14,9 +14,9 @@ func ParseFlags() (Config, error){
     flag.StringVar(&cfg.FlagRunAddr, "a", ":8080", "address and port to run server")
     flag.Parse()
 
-	if len(flag.Args()) > 0 {
-		return cfg, errors.New("Unknown flags")
-	}
+	if envFlagRunAddr := os.Getenv("ADDRESS"); envFlagRunAddr != "" {
+        cfg.FlagRunAddr = envFlagRunAddr
+    }
 
     return cfg, nil
 }
