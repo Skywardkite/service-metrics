@@ -3,7 +3,6 @@ module github.com/Skywardkite/service-metrics
 go 1.24.3
 
 require (
-	github.com/caarlos0/env/v6 v6.10.1
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/stretchr/testify v1.10.0
 	gotest.tools v2.2.0+incompatible
