@@ -33,12 +33,12 @@ func SendMetrics(client *http.Client, storage *agent.AgentMetrics, url string) e
     for _, metric := range metrics {
         jsonData, err := json.Marshal(metric)
         if err != nil {
-		return fmt.Errorf("failed to marshal metrics: %w", err)
+		    return fmt.Errorf("failed to marshal metrics: %w", err)
         }
 
         req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
         if err != nil {
-		return fmt.Errorf("failed to create request")
+		    return fmt.Errorf("failed to create request")
         }
         req.Header.Set("Content-Type", "application/json")
 
