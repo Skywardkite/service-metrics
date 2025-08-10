@@ -34,7 +34,8 @@ func (app *AgentApp) Run() {
 		case <-pollTicker.C:			
 			agent.PollRuntimeMetrics(store)
 		case <-reportTicker.C:
-			handler.SendMetrics(client, store, app.cfg.FlagRunAddr)
+			url := "http://" + app.cfg.FlagRunAddr + "/update"
+			handler.SendMetrics(client, store, url)
 		}
 	}
 }
