@@ -13,13 +13,12 @@ import (
 func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) {
 	var metric model.Metrics
     var buf bytes.Buffer
-    // читаем тело запроса
+	
     _, err := buf.ReadFrom(req.Body)
     if err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
-    // десериализуем JSON в Visitor
     if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
