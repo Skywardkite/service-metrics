@@ -43,7 +43,7 @@ func sendPlainPost(client *http.Client, url string, metric model.Metrics) error 
     if err != nil {
         return fmt.Errorf("failed to create request")
     }
-    req.Header.Set("Content-Type", "text/plain")
+    req.Header.Set("Content-Type", "application/json")
 
     resp, err := client.Do(req)
     if err != nil {
