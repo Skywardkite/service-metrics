@@ -39,7 +39,7 @@ func (app *AgentApp) Run() {
 			if !strings.HasPrefix(app.cfg.FlagRunAddr, "http://") && !strings.HasPrefix(app.cfg.FlagRunAddr, "https://") {
 				url = "http://" + app.cfg.FlagRunAddr
 			}
-			handler.SendMetrics(client, store, url + "/update")
+			handler.SendMetrics(client, store, url + "/update/")
 		}
 	}
 }
