@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -24,7 +25,10 @@ func TestHandler_UpdateHandler(t *testing.T) {
 	}
 
 	store := storage.NewMemStorage()
-    metricService := service.NewMetricService(store)
+	cfg := serverconfig.Config{
+		StoreInternal: 30,
+	}
+    metricService := service.NewMetricService(&cfg, store)
 
 	tests := []struct {
 		name   string

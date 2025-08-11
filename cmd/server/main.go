@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
+	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	logger "github.com/Skywardkite/service-metrics/internal/logger"
 	"github.com/Skywardkite/service-metrics/internal/service"
@@ -24,7 +25,10 @@ func main() {
     }
 
     store := storage.NewMemStorage()
-    metricService := service.NewMetricService(store)
+	fileStorage := filestorage.NewStorageConfig(&cfg, store)
+	fileStorage.Run()
+
+    metricService := service.NewMetricService(&cfg, store)
     h := handler.NewHandler(metricService)
 
     r := chi.NewRouter()
