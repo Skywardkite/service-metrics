@@ -28,8 +28,9 @@ func main() {
     h := handler.NewHandler(metricService)
 
     r := chi.NewRouter()
-	// Применяем middleware логирования ко всем роутам
+	// Применяем middleware ко всем роутам
 	r.Use(logger.WithLogging)
+	r.Use(gzipMiddleware)
 
 	// Регистрируем обработчики
     r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -39,11 +40,23 @@ func sendPlainPost(client *http.Client, url string, metric model.Metrics) error 
 		return fmt.Errorf("failed to marshal metrics: %w", err)
     }
 
-    req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
+    // Сжимаем данные
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write(jsonData); err != nil {
+		return fmt.Errorf("failed to compress data: %w", err)
+	}
+	if err := gz.Close(); err != nil {
+		return fmt.Errorf("failed to close gzip writer: %w", err)
+	}
+
+    req, err := http.NewRequest(http.MethodPost, url, &buf)
     if err != nil {
         return fmt.Errorf("failed to create request")
     }
     req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Accept-Encoding", "gzip")
 
     resp, err := client.Do(req)
     if err != nil {
