@@ -2,7 +2,6 @@ package app
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
@@ -35,11 +34,7 @@ func (app *AgentApp) Run() {
 		case <-pollTicker.C:			
 			agent.PollRuntimeMetrics(store)
 		case <-reportTicker.C:
-			url := app.cfg.FlagRunAddr
-			if !strings.HasPrefix(app.cfg.FlagRunAddr, "http://") && !strings.HasPrefix(app.cfg.FlagRunAddr, "https://") {
-				url = "http://" + app.cfg.FlagRunAddr
-			}
-			handler.SendMetrics(client, store, url + "/update")
+			handler.SendMetrics(client, store, app.cfg.FlagRunAddr)
 		}
 	}
 }
