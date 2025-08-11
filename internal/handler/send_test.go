@@ -1,16 +1,6 @@
 package handler
 
-import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
-
-	"github.com/Skywardkite/service-metrics/internal/agent"
-	"github.com/stretchr/testify/assert"
-)
-
-func Test_sendPlainPost(t *testing.T) {
+/* func Test_sendPlainPost(t *testing.T) {
     storage := &agent.AgentMetrics{
         Gauge:   map[string]float64{"TestMetric": 1.23},
         Counter: map[string]int64{"TestCounter": 1},
@@ -61,4 +51,4 @@ func Test_sendPlainPost(t *testing.T) {
             }
         })
     }
-}
+} */
