@@ -35,8 +35,6 @@ func main() {
     r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
 	r.Get("/", h.GetAllMetricsHandler)
-
-	//r.Post("/update", h.UpdateJSONHandler)
    	if err := http.ListenAndServe(cfg.FlagRunAddr, r); err != nil {
 		logger.Sugar.Fatalw("Error to listen server", err.Error(), "event", "start server")
 	}
