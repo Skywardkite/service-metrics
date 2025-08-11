@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -36,7 +35,7 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 			http.Error(res, "invalid gauge value", http.StatusBadRequest)
 			return
 		}
-		value = fmt.Sprintf("%v", *metric.Value)
+		value = strconv.FormatFloat(*metric.Value, 'f', -1, 64)
 	case "counter":
 		if metric.Delta == nil {
 			http.Error(res, "invalid counter value", http.StatusBadRequest)
