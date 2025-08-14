@@ -6,14 +6,19 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_sendPlainPost(t *testing.T) {
+    testValue := 45.979785
+    testDelta := int64(6767884)
+
 	tests := []struct {
 		name string
 		serverHandler  http.HandlerFunc
 		client *http.Client
+        metric model.Metrics
 		url    string
 		wantErr   bool
 		errorMessage string
@@ -24,6 +29,11 @@ func Test_sendPlainPost(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			},
 			client:      &http.Client{},
+            metric:     model.Metrics{
+                ID: "test",
+                MType: "gauge",
+                Value: &testValue,
+            },
 			url:         "/test",
 			wantErr: false,
 		},
@@ -33,6 +43,11 @@ func Test_sendPlainPost(t *testing.T) {
 				w.WriteHeader(http.StatusInternalServerError)
 			},
 			client:        &http.Client{},
+            metric:     model.Metrics{
+                ID:     "test",
+                MType:  "counter",
+                Delta:  &testDelta,
+            },
 			url:           "/test",
 			wantErr:  		true,
 			errorMessage: fmt.Sprintf("non-OK response status: %d", http.StatusInternalServerError),
@@ -55,7 +70,7 @@ func Test_sendPlainPost(t *testing.T) {
 				tt.url = server.URL + tt.url
 			}
 
-			err := sendPlainPost(tt.client, tt.url)
+			err := sendPlainPost(tt.client, tt.url, tt.metric)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Equal(t, tt.errorMessage, err.Error())

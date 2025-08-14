@@ -3,6 +3,7 @@ package service
 import (
 	"testing"
 
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -10,6 +11,7 @@ import (
 func TestMetricService_UpdateMetric(t *testing.T) {
 	type fields struct {
 		store *storage.MemStorage
+		cfg    *serverconfig.Config
 	}
 	type args struct {
 		metricType  string
@@ -30,6 +32,9 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 					Gauge:   map[string]float64{"some_metric": 1.5},
 					Counter: make(map[string]int64),
 				},
+				cfg: &serverconfig.Config{
+					StoreInternal: 0,
+				},
 			},
 			args: args{
 				metricType: "gauge",
@@ -44,6 +49,9 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				store: &storage.MemStorage{
 					Gauge:   map[string]float64{"some_metric": 1.5},
 					Counter: make(map[string]int64),
+				},
+				cfg: &serverconfig.Config{
+					StoreInternal: 0,
 				},
 			},
 			args: args{
@@ -98,6 +106,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &MetricService{
 				store: tt.fields.store,
+				cfg: tt.fields.cfg,
 			}
 			err := s.UpdateMetric(tt.args.metricType, tt.args.metricName, tt.args.metricValue)
 			if tt.wantErr {
