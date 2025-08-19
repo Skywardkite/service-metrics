@@ -3,7 +3,7 @@ package filestorage
 import (
 	"time"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/logger"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )

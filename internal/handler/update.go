@@ -5,16 +5,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Skywardkite/service-metrics/internal/database"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/go-chi/chi/v5"
 )
 
 type Handler struct {
 	service *service.MetricService
+	db      *database.DB
 }
 
-func NewHandler(s *service.MetricService) *Handler {
-	return &Handler{service: s}
+func NewHandler(s *service.MetricService, db *database.DB) *Handler {
+	return &Handler{service: s, db: db}
 }
 
 func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
-	"github.com/Skywardkite/service-metrics/internal/config/agentConfig"
+	agentConfig "github.com/Skywardkite/service-metrics/internal/config/agent_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 )
 

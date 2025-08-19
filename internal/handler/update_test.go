@@ -6,7 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
+	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -39,13 +40,13 @@ func TestHandler_UpdateHandler(t *testing.T) {
 		{
 			name: "successful gauge update",
 			args: args{
-				method: http.MethodPost,
-				metricType:		"gauge",
+				method: 		http.MethodPost,
+				metricType:		model.Gauge,
 				metricName:		"temperature",
 				metricValue:	"23.5",
 			},
 			expectedStatus:    http.StatusOK,
-			expectedHeaders: map[string]string{
+			expectedHeaders: 	map[string]string{
 				"Content-Type":   "text/plain; charset=utf-8",
 				"Content-Length": "0",
 			},
@@ -53,8 +54,8 @@ func TestHandler_UpdateHandler(t *testing.T) {
 		{
 			name: "successful counter update",
 			args: args{
-				method: http.MethodPost,
-				metricType:		"counter",
+				method: 		http.MethodPost,
+				metricType:		model.Counter,
 				metricName:		"temperature",
 				metricValue:	"23",
 			},
@@ -68,7 +69,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			name: "invalid path - too short",
 			args: args{
 				method: http.MethodPost,
-				metricType:		"counter",
+				metricType:		model.Counter,
 				metricName:		"",
 				metricValue:	"",
 			},
@@ -78,7 +79,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			name: "empty metric name",
 			args: args{
 				method: http.MethodPost,
-				metricType:		"counter",
+				metricType:		model.Counter,
 				metricName:		"",
 				metricValue:	"23",
 			},
@@ -88,7 +89,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			name: "service returns error",
 			args: args{
 				method: http.MethodPost,
-				metricType:		"gauge",
+				metricType:		model.Gauge,
 				metricName:		"temperature",
 				metricValue:	"invalid",
 			},
@@ -97,7 +98,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := NewHandler(metricService)
+			h := NewHandler(metricService, nil)
 
 			req := httptest.NewRequest(tt.args.method, "/", nil)
 			res := httptest.NewRecorder()

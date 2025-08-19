@@ -9,15 +9,14 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
-func (h *Handler) GetJSONHandler(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Request) {
 	var metric model.Metrics
     var buf bytes.Buffer
-     _, err := buf.ReadFrom(req.Body)
-    if err != nil {
+    if _, err := buf.ReadFrom(req.Body); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
-    if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
+    if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
@@ -30,14 +29,14 @@ func (h *Handler) GetJSONHandler(res http.ResponseWriter, req *http.Request) {
 
     // Получаем значение метрики из хранилища
     switch metric.MType {
-    case "gauge":
+    case model.Gauge:
 		floatValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			http.Error(res, "invalid gauge value", http.StatusBadRequest)
 			return
 		}
         metric.Value = &floatValue
-    case "counter":
+    case model.Counter:
 		intValue, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			http.Error(res, "invalid counter value", http.StatusBadRequest)

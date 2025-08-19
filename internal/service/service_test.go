@@ -3,7 +3,8 @@ package service
 import (
 	"testing"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
+	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +38,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				},
 			},
 			args: args{
-				metricType: "gauge",
+				metricType: model.Gauge,
 				metricName: "some_metric_1",
 				metricValue: "65.5",
 			},
@@ -55,7 +56,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 				},
 			},
 			args: args{
-				metricType: "counter",
+				metricType: model.Counter,
 				metricName: "some_metric_1",
 				metricValue: "20",
 			},
@@ -64,7 +65,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 		{
 			name: "invalid gauge value",
 			args: args{
-				metricType: "gauge",
+				metricType: model.Gauge,
 				metricName: "some_metric_1",
 				metricValue: "invalid",
 			},
@@ -74,7 +75,7 @@ func TestMetricService_UpdateMetric(t *testing.T) {
 		{
 			name: "invalid counter value",
 			args: args{
-				metricType: "counter",
+				metricType: model.Counter,
 				metricName: "some_metric_1",
 				metricValue: "invalid",
 			},

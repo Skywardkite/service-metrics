@@ -31,7 +31,7 @@ func Test_sendPlainPost(t *testing.T) {
 			client:      &http.Client{},
             metric:     model.Metrics{
                 ID: "test",
-                MType: "gauge",
+                MType: model.Gauge,
                 Value: &testValue,
             },
 			url:         "/test",
@@ -45,7 +45,7 @@ func Test_sendPlainPost(t *testing.T) {
 			client:        &http.Client{},
             metric:     model.Metrics{
                 ID:     "test",
-                MType:  "counter",
+                MType:  model.Counter,
                 Delta:  &testDelta,
             },
 			url:           "/test",

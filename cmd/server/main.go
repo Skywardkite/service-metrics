@@ -4,7 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
+	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
+	"github.com/Skywardkite/service-metrics/internal/database"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	logger "github.com/Skywardkite/service-metrics/internal/logger"
@@ -28,8 +29,17 @@ func main() {
 	fileStorage := filestorage.NewStorageConfig(&cfg, store)
 	fileStorage.Run()
 
+	var db *database.DB
+	if cfg.DatabaseDSN != "" {
+		db, err = database.New(cfg.DatabaseDSN)
+		if err != nil {
+			logger.Sugar.Fatalw("Failed to connect to database", "error", err)
+		}
+		defer db.Close()
+	}
+	
     metricService := service.NewMetricService(&cfg, store)
-    h := handler.NewHandler(metricService)
+    h := handler.NewHandler(metricService, db)
 
     r := chi.NewRouter()
 	// Применяем middleware ко всем роутам
@@ -40,9 +50,10 @@ func main() {
     r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
 	r.Get("/", h.GetAllMetricsHandler)
+	r.Get("/ping", h.PingHandler)
 
 	r.Post("/update/", h.UpdateJSONHandler)
-	r.Post("/value/", h.GetJSONHandler)
+	r.Post("/value/", h.GetMetricJSONHandler)
    	if err := http.ListenAndServe(cfg.FlagRunAddr, r); err != nil {
 		logger.Sugar.Fatalw("Error to listen server", err.Error(), "event", "start server")
 	}

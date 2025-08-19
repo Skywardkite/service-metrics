@@ -13,6 +13,7 @@ type Config struct {
     StoreInternal 	time.Duration
     FileStoragePath string
     Restore         bool
+    DatabaseDSN     string
 }
 
 func ParseFlags() (Config, error){
@@ -22,6 +23,7 @@ func ParseFlags() (Config, error){
     flag.IntVar(&storeInternal, "i", 300, "server metrics update frequency")
     flag.StringVar(&cfg.FileStoragePath, "f", "./tmp/metrics.json", "path to storage")
     flag.BoolVar(&cfg.Restore, "r", true, "need to restore")
+    flag.StringVar(&cfg.DatabaseDSN, "d", "", "database connection")
     flag.Parse()
 
 	if envFlagRunAddr := os.Getenv("ADDRESS"); envFlagRunAddr != "" {
@@ -47,6 +49,10 @@ func ParseFlags() (Config, error){
             return cfg, fmt.Errorf("invalid RESTORE: %s", envRestore)
         }
         cfg.Restore = restore
+    }
+
+    if envDatabaseDSN := os.Getenv("DATABASE_DSN"); envDatabaseDSN != "" {
+        cfg.DatabaseDSN = envDatabaseDSN
     }
 
     return cfg, nil

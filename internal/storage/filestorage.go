@@ -27,7 +27,7 @@ func SaveMetrics(filePath string, gauges map[string]float64, counters map[string
 			Value float64 `json:"value"`
 		}{
 			ID:    id,
-			Type:  "gauge",
+			Type:  model.Gauge,
 			Value: value,
 		})
 		if _, err := writer.Write(append(data, '\n')); err != nil {
@@ -44,7 +44,7 @@ func SaveMetrics(filePath string, gauges map[string]float64, counters map[string
 			Delta int64  `json:"delta"`
 		}{
 			ID:    id,
-			Type:  "counter",
+			Type:  model.Counter,
 			Delta: delta,
 		})
 		if _, err := writer.Write(append(data, '\n')); err != nil {
@@ -88,9 +88,9 @@ func LoadMetrics(filePath string) (map[string]float64, map[string]int64, error) 
 		}
 
 		switch m.MType {
-		case "gauge":
+		case model.Gauge:
 			gauges[m.ID] = *m.Value
-		case "counter":
+		case model.Counter:
 			counters[m.ID] = *m.Delta 
 		}
 	}

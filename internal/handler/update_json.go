@@ -13,12 +13,11 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 	var metric model.Metrics
     var buf bytes.Buffer
 	
-    _, err := buf.ReadFrom(req.Body)
-    if err != nil {
+    if _, err := buf.ReadFrom(req.Body); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
-    if err = json.Unmarshal(buf.Bytes(), &metric); err != nil {
+    if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
@@ -30,13 +29,13 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 
 	var value string
 	switch metric.MType {
-	case "gauge":
+	case model.Gauge:
 		if metric.Value == nil {
 			http.Error(res, "invalid gauge value", http.StatusBadRequest)
 			return
 		}
 		value = strconv.FormatFloat(*metric.Value, 'f', -1, 64)
-	case "counter":
+	case model.Counter:
 		if metric.Delta == nil {
 			http.Error(res, "invalid counter value", http.StatusBadRequest)
 			return
@@ -44,8 +43,7 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 		value = strconv.FormatInt(*metric.Delta, 10)
 	}
 
-	err = h.service.UpdateMetric(metric.MType, metric.ID, value)
-	if err != nil {
+	if err := h.service.UpdateMetric(metric.MType, metric.ID, value); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}

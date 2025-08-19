@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/Skywardkite/service-metrics/internal/app"
-	"github.com/Skywardkite/service-metrics/internal/config/agentConfig"
+	agentConfig "github.com/Skywardkite/service-metrics/internal/config/agent_config"
 )
 
 func main() {
