@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Skywardkite/service-metrics/internal/logger"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -25,8 +24,6 @@ type PostgresStorage struct {
 }
 
 func New(dsn string) (*PostgresStorage, error) {
-	logger.Sugar.Infow("Connecting to database", "dsn", dsn)
-
 	// Используем Connect вместо Open - он проверяет соединение
 	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
