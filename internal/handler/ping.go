@@ -5,12 +5,12 @@ import (
 )
 
 func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
-	if h.db == nil {
+	if h.store == nil {
 		http.Error(res, "Database not configured", http.StatusInternalServerError)
 		return
 	}
 
-	if err := h.db.Ping(); err != nil {
+	if err := h.store.Ping(); err != nil {
 		http.Error(res, "Database connection failed", http.StatusInternalServerError)
 		return
 	}

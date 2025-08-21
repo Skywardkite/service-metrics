@@ -1,31 +1,36 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
 	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
 	model "github.com/Skywardkite/service-metrics/internal/model"
+	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type MetricService struct {
 	cfg 	*serverconfig.Config
-	store *storage.MemStorage
+	store repository.Storage
 }
 
-func NewMetricService(cfg 	*serverconfig.Config, s *storage.MemStorage) *MetricService {
+func NewMetricService(cfg 	*serverconfig.Config, s repository.Storage) *MetricService {
 	return &MetricService{cfg: cfg, store: s}
 }
 
-func (s *MetricService) UpdateMetric(metricType, metricName, metricValue string) error {
+func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error {
 	switch metricType {
       case model.Gauge:
         value, err := strconv.ParseFloat(metricValue, 64)
         if err != nil {
           return fmt.Errorf("invalid gauge value: %s", metricValue)
         }
-		    s.store.SetGauge(metricName, value)
+		    err = s.store.SetGauge(context.Background(), metricName, value)
+        if err != nil {
+          return fmt.Errorf("failed to set gauge: %s", metricName)
+        }
 
         if s.cfg.StoreInternal == 0 {
           storage.SaveMetrics(s.cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
@@ -36,9 +41,12 @@ func (s *MetricService) UpdateMetric(metricType, metricName, metricValue string)
         if err != nil {
           return fmt.Errorf("invalid counter value: %s", metricValue)
         }
-		    s.store.SetCounter(metricName, value)
+		    err = s.store.SetCounter(ctx, metricName, value)
+        if err != nil {
+          return fmt.Errorf("failed to set counter: %s", metricName)
+        }
 
-        if s.cfg.StoreInternal == 0 {
+        if s.cfg.StoreInternal == 0 && s.cfg.DatabaseDSN == "" {
           storage.SaveMetrics(s.cfg.FileStoragePath, nil, map[string]int64{metricName: value})
         }
         return nil
@@ -47,17 +55,17 @@ func (s *MetricService) UpdateMetric(metricType, metricName, metricValue string)
     }
 }
 
-func (s *MetricService) GetMetric(metricType, metricName string) (string, error) {
+func (s *MetricService) GetMetric(ctx context.Context, metricType, metricName string) (string, error) {
 	switch metricType {
       case model.Gauge:
-        value, ok := s.store.GetGauge(metricName)
-        if !ok {
+        value, err := s.store.GetGauge(ctx, metricName)
+        if err != nil {
           return "", fmt.Errorf("unknown metric: %s", metricName)
         }
         return strconv.FormatFloat(value, 'f', -1, 64), nil
       case model.Counter:
-        value, ok := s.store.GetCounter(metricName)
-        if !ok {
+        value, err := s.store.GetCounter(ctx, metricName)
+        if err != nil {
           return "", fmt.Errorf("unknown metric: %s", metricName)
         }
         return strconv.FormatInt(value, 10), nil
@@ -66,7 +74,10 @@ func (s *MetricService) GetMetric(metricType, metricName string) (string, error)
     }
 }
 
-func (s *MetricService) GetAllMetrics() (map[string]float64, map[string]int64) {
-	gauges, counters := s.store.GetMetrics()
-	return gauges, counters
+func (s *MetricService) GetAllMetrics(ctx context.Context) (map[string]float64, map[string]int64, error) {
+  gauges, counters, err := s.store.GetMetrics(ctx)
+  if err != nil {
+    return nil, nil, fmt.Errorf("failed to get metrics: %s", err)
+  }
+	return gauges, counters, nil
 } 

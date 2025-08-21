@@ -5,21 +5,23 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Skywardkite/service-metrics/internal/database"
+	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/go-chi/chi/v5"
 )
 
 type Handler struct {
 	service *service.MetricService
-	db      *database.DB
+	store repository.Storage
 }
 
-func NewHandler(s *service.MetricService, db *database.DB) *Handler {
-	return &Handler{service: s, db: db}
+func NewHandler(s *service.MetricService, store repository.Storage) *Handler {
+	return &Handler{service: s, store: store}
 }
 
 func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	
 	metricType := chi.URLParam(req, "metricType")
 	metricName := chi.URLParam(req, "metricName")
 	metricValue := chi.URLParam(req, "metricValue")
@@ -28,7 +30,7 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := h.service.UpdateMetric(metricType, metricName, metricValue)
+	err := h.service.UpdateMetric(ctx, metricType, metricName, metricValue)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return

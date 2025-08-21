@@ -1,14 +1,15 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
-	"github.com/Skywardkite/service-metrics/internal/database"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	logger "github.com/Skywardkite/service-metrics/internal/logger"
+	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -25,21 +26,32 @@ func main() {
 		logger.Sugar.Fatalw("Error to parse flags", "error", err)
     }
 
-    store := storage.NewMemStorage()
-	fileStorage := filestorage.NewStorageConfig(&cfg, store)
-	fileStorage.Run()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	
+	var store repository.Storage
 
-	var db *database.DB
 	if cfg.DatabaseDSN != "" {
-		db, err = database.New(cfg.DatabaseDSN)
+		pgStore, err := repository.New(cfg.DatabaseDSN)
 		if err != nil {
 			logger.Sugar.Fatalw("Failed to connect to database", "error", err)
 		}
-		defer db.Close()
+		store = pgStore
+
+		 // Закрываем соединение при завершении программы
+		defer func() {
+			if err := pgStore.Close(); err != nil {
+				logger.Sugar.Errorw("Failed to close database", "error", err)
+			}
+		}()
+	} else {
+		store = storage.NewMemStorage()
+		fileStorage := filestorage.NewStorageConfig(&cfg, store)
+		fileStorage.Run(ctx)
 	}
 	
     metricService := service.NewMetricService(&cfg, store)
-    h := handler.NewHandler(metricService, db)
+    h := handler.NewHandler(metricService, store)
 
     r := chi.NewRouter()
 	// Применяем middleware ко всем роутам

@@ -11,7 +11,12 @@ type MetricsPageData struct {
 }
 
 func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Request) {
-	gauges, counters := h.service.GetAllMetrics()
+	ctx := req.Context()
+    gauges, counters, err := h.service.GetAllMetrics(ctx)
+    if err != nil {
+        res.WriteHeader(http.StatusInternalServerError)
+        return
+    }
 
     data := MetricsPageData{
 		Gauges:    gauges,

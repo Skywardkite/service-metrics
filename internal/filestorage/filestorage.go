@@ -1,33 +1,35 @@
 package filestorage
 
 import (
+	"context"
 	"time"
 
 	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/logger"
+	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type StorageConfig struct {
 	cfg *serverconfig.Config
-	store *storage.MemStorage
+	store repository.Storage
 }
 
-func NewStorageConfig(cfg *serverconfig.Config, store *storage.MemStorage) *StorageConfig {
+func NewStorageConfig(cfg *serverconfig.Config, store repository.Storage) *StorageConfig {
 	return &StorageConfig{
 		cfg: cfg,
 		store: store,
 	}
 }
 
-func (c *StorageConfig) Run(){
+func (c *StorageConfig) Run(ctx context.Context){
 	if c.cfg.Restore {
 		if gauges, counters, err := storage.LoadMetrics(c.cfg.FileStoragePath); err == nil {
 			for name, value := range gauges {
-				c.store.SetGauge(name, value)
+				c.store.SetGauge(ctx, name, value)
 			}
 			for name, delta := range counters {
-				c.store.SetCounter(name, delta)
+				c.store.SetCounter(ctx, name, delta)
 			}
 			logger.Sugar.Info("Metrics restored from file")
 		} else {
@@ -41,7 +43,7 @@ func (c *StorageConfig) Run(){
 			defer ticker.Stop()
 
 			for range ticker.C {
-				gauges, counters := c.store.GetMetrics()
+				gauges, counters, _ := c.store.GetMetrics(ctx)
 				err := storage.SaveMetrics(c.cfg.FileStoragePath, gauges, counters)
 				if err != nil {
 					logger.Sugar.Errorw("Failed to save metrics", "error", err)

@@ -12,6 +12,7 @@ import (
 func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) {
 	var metric model.Metrics
     var buf bytes.Buffer
+	ctx := req.Context()
 	
     if _, err := buf.ReadFrom(req.Body); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
@@ -43,7 +44,7 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 		value = strconv.FormatInt(*metric.Delta, 10)
 	}
 
-	if err := h.service.UpdateMetric(metric.MType, metric.ID, value); err != nil {
+	if err := h.service.UpdateMetric(ctx, metric.MType, metric.ID, value); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}

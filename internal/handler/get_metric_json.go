@@ -12,6 +12,7 @@ import (
 func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Request) {
 	var metric model.Metrics
     var buf bytes.Buffer
+	ctx := req.Context()
     if _, err := buf.ReadFrom(req.Body); err != nil {
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
@@ -21,7 +22,7 @@ func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Reques
         return
     }
 
-	value, err := h.service.GetMetric(metric.MType, metric.ID)
+	value, err := h.service.GetMetric(ctx, metric.MType, metric.ID)
 	if err != nil {
 		res.WriteHeader(http.StatusNotFound)
 		return

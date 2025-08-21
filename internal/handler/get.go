@@ -7,6 +7,7 @@ import (
 )
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	metricType := chi.URLParam(req, "metricType")
 	metricName := chi.URLParam(req, "metricName")
 	
@@ -15,7 +16,7 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
-	value, err := h.service.GetMetric(metricType, metricName)
+	value, err := h.service.GetMetric(ctx, metricType, metricName)
 	if err != nil {
 		res.WriteHeader(http.StatusNotFound)
 		return
