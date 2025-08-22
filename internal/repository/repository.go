@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -31,6 +33,11 @@ func New(dsn string) (*PostgresStorage, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
+	err = applyMigrations(dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to migrate database: %w", err)
+	}
+
 	log.Println("PostgreSQL storage initialized successfully")
 	return &PostgresStorage{db: db}, nil
 }
@@ -44,4 +51,22 @@ func (r *PostgresStorage) Close() error {
 
 func (r *PostgresStorage) Ping() error {
 	return r.db.Ping()
+}
+
+func applyMigrations(dsn string) error {
+    m, err := migrate.New(
+        "file://migrations",
+        dsn,
+    )
+    if err != nil {
+        return fmt.Errorf("failed to create migrate instance: %w", err)
+    }
+
+    // Применяем все новые миграции
+    if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+        return fmt.Errorf("failed to apply migrations: %w", err)
+    }
+
+    log.Println("Migrations applied successfully")
+    return nil
 }
