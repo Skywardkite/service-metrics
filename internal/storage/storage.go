@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"maps"
+
+	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
 var (
 	ErrCounterNotFound = errors.New("metric counter not found")
 	ErrGaugeNotFound = errors.New("metric gauge not found")
+	ErrConnectToDB = errors.New("metric counter not found")
+	ErrUnsupportedMetricType = errors.New("unsupported metric type")
 )
 type MemStorage struct {
 	Gauge 		map[string]float64
@@ -59,6 +63,20 @@ func (s *MemStorage) GetMetrics(ctx context.Context) (map[string]float64, map[st
 }
 
 func (s *MemStorage) Ping() error {
-	// Всегда доступно. Нужно для общего интрефейса с бд
+	// Соединение с бд отсутствует
+	return ErrConnectToDB
+}
+
+func (s *MemStorage) SetMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
+	for _, metric := range metrics {
+		switch metric.MType {
+		case model.Gauge:
+			s.Gauge[metric.ID] = *metric.Value
+		case model.Counter:
+			s.Counter[metric.ID] += *metric.Delta
+		default: 
+			return ErrUnsupportedMetricType
+		}
+	}
 	return nil
 }

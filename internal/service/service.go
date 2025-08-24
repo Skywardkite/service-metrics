@@ -81,3 +81,11 @@ func (s *MetricService) GetAllMetrics(ctx context.Context) (map[string]float64, 
   }
 	return gauges, counters, nil
 } 
+
+func (s *MetricService) SaveMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
+  err := s.store.SetMetricsBatch(ctx, metrics)
+  if err != nil {
+    return fmt.Errorf("failed to set metrics batch: %w", err)
+  }
+  return nil
+}

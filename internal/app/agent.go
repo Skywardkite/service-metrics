@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -39,7 +40,16 @@ func (app *AgentApp) Run() {
 			if !strings.HasPrefix(app.cfg.FlagRunAddr, "http://") && !strings.HasPrefix(app.cfg.FlagRunAddr, "https://") {
 				url = "http://" + app.cfg.FlagRunAddr
 			}
-			handler.SendMetrics(client, store, url + "/update/")
+
+			if app.cfg.UseBatch {
+				// Батчевая отправка
+				err := handler.SendBatch(client, store, url)
+				if err != nil {
+					log.Printf("Batch API failed, falling back to individual: %v", err)
+				}
+			} else {
+				handler.SendMetrics(client, store, url + "/update/")
+			}
 		}
 	}
 }

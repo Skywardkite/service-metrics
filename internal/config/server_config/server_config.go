@@ -44,8 +44,8 @@ func ParseFlags() (Config, error){
     }
 
     if envRestore := os.Getenv("RESTORE"); envRestore != "" {
-        restore, err1 := strconv.ParseBool(envRestore)
-        if err1 != nil {
+        restore, err := strconv.ParseBool(envRestore)
+        if err != nil {
             return cfg, fmt.Errorf("invalid RESTORE: %s", envRestore)
         }
         cfg.Restore = restore

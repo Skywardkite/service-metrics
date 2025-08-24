@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 
+	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -18,6 +18,7 @@ type Storage interface {
 	GetCounter(ctx context.Context, name string) (int64, error)
 	GetGauge(ctx context.Context, name string) (float64, error)
 	GetMetrics(ctx context.Context) (map[string]float64, map[string]int64, error)
+	SetMetricsBatch(ctx context.Context, metrics []model.Metrics) error
 	Ping() error
 }
 
@@ -29,7 +30,6 @@ func New(dsn string) (*PostgresStorage, error) {
 	// Используем Connect вместо Open - он проверяет соединение
 	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
-		log.Printf("Connection failed: %v", err)
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
@@ -38,7 +38,6 @@ func New(dsn string) (*PostgresStorage, error) {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	log.Println("PostgreSQL storage initialized successfully")
 	return &PostgresStorage{db: db}, nil
 }
 
@@ -67,6 +66,5 @@ func applyMigrations(dsn string) error {
         return fmt.Errorf("failed to apply migrations: %w", err)
     }
 
-    log.Println("Migrations applied successfully")
     return nil
 }
