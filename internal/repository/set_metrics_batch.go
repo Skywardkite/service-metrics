@@ -2,11 +2,38 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
 func (r *PostgresStorage) SetMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
+    classifier := NewPostgresErrorClassifier()
+    delays := []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
+
+    var lastErr error
+    for attempt := 0; attempt <= len(delays); attempt++ {
+        err := r.trySetMetricsBatch(ctx, metrics)
+        if err == nil {
+            return nil
+        }
+
+        if classifier.Classify(err) == Retriable {
+            lastErr = err
+            if attempt < len(delays) {
+                time.Sleep(delays[attempt])
+                continue
+            }
+        }
+
+        // не ретраим
+        return err
+    }
+
+    return lastErr
+}
+
+func (r *PostgresStorage) trySetMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
     tx, err := r.db.Beginx()
     if err != nil {
         return err

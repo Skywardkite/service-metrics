@@ -4,22 +4,35 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"time"
 )
+
+const queryGetGauge = `SELECT value FROM gauges WHERE name = $1`
 
 var ErrGaugeNotFound = errors.New("metric gauge not found")
 
 func (r *PostgresStorage) GetGauge(ctx context.Context, name string) (float64, error) {
-	query := `SELECT value FROM gauges WHERE name = $1`
+	classifier := NewPostgresErrorClassifier()
+    delays := []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 
-	var value float64
-	err := r.db.GetContext(ctx, &value, query, name)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return 0, ErrGaugeNotFound
+    var lastErr error
+    for attempt := 0; attempt <= len(delays); attempt++ {
+		var value float64
+		err := r.db.GetContext(ctx, &value, queryGetGauge, name)
+		if err == nil {
+			return value, nil
 		}
 
-		return 0, err
-	}
+		classification := classifier.Classify(err)
 
-	return value, nil
+        if classification == NonRetriable {
+			if errors.Is(err, sql.ErrNoRows) {
+				return 0, ErrCounterNotFound
+			}
+            return 0, err
+        }
+	}
+	
+	return 0, fmt.Errorf("операция прервана после %d попыток: %w", len(delays), lastErr)
 }

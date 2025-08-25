@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -50,7 +49,7 @@ func Test_sendPlainPost(t *testing.T) {
             },
 			url:           "/test",
 			wantErr:  		true,
-			errorMessage: fmt.Sprintf("non-OK response status: %d", http.StatusInternalServerError),
+			errorMessage: "all retries failed, last error: server error: 500",
 		},
 		{
 			name: "invalid URL",
@@ -58,7 +57,7 @@ func Test_sendPlainPost(t *testing.T) {
 			client:        &http.Client{},
 			url:           "://invalid-url",
 			wantErr:   		true,
-			errorMessage: "failed to create request",
+			errorMessage: "failed to create request: parse \"://invalid-url\": missing protocol scheme",
 		},
 	}
 	for _, tt := range tests {
