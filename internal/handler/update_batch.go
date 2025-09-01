@@ -14,6 +14,7 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
     var metrics []model.Metrics
     decoder := json.NewDecoder(r.Body)
     if err := decoder.Decode(&metrics); err != nil {
+		h.logger.Errorf("Error decoding JSON: %v", err)
         http.Error(w, "Invalid JSON format", http.StatusBadRequest)
         return
     }
@@ -22,6 +23,7 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 
     // Проверяем, что батч не пустой
     if len(metrics) == 0 {
+        h.logger.Errorf("Empty batch to update metrics")
         http.Error(w, "Empty batch", http.StatusBadRequest)
         return
     }
@@ -29,6 +31,7 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 	// Сохраняем метрики в базе в одной транзакции
     err := h.service.SaveMetricsBatch(ctx, metrics)
     if err != nil {
+        h.logger.Errorf("Error saving metrics: %v", err)
         http.Error(w, "Internal server error", http.StatusInternalServerError)
         return
     }

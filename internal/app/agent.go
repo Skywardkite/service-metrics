@@ -2,7 +2,6 @@ package app
 
 import (
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -23,7 +22,7 @@ func NewApp(cfg *agentConfig.AgentConfig) *AgentApp{
 
 func (app *AgentApp) Run() {
 	store := agent.NewAgentMetrics()
-	client := &http.Client{}
+	client := handler.NewRetryableClient()
 
 	pollTicker := time.NewTicker(app.cfg.PollInterval)
 	defer pollTicker.Stop()

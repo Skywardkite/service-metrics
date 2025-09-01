@@ -14,16 +14,19 @@ func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Reques
     var buf bytes.Buffer
 	ctx := req.Context()
     if _, err := buf.ReadFrom(req.Body); err != nil {
+		h.logger.Errorw("Failed to read body", "error", err)
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
     if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
+		h.logger.Errorw("Failed to unmarshal body", "error", err)
         http.Error(res, err.Error(), http.StatusBadRequest)
         return
     }
 
 	value, err := h.service.GetMetric(ctx, metric.MType, metric.ID)
 	if err != nil {
+		h.logger.Errorw("Failed to get metric", "error", err)
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -48,6 +51,7 @@ func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Reques
 
 	r, err := json.Marshal(metric)
     if err != nil {
+		h.logger.Errorw("Failed to marshal metric", "error", err)
         http.Error(res, err.Error(), http.StatusInternalServerError)
         return
     }

@@ -26,11 +26,11 @@ func ParseFlags() (AgentConfig, error){
     flag.Parse()
 
 
-	if envFlagRunAddr := os.Getenv("ADDRESS"); envFlagRunAddr != "" {
+	if envFlagRunAddr, ok := os.LookupEnv("ADDRESS"); ok {
         cfg.FlagRunAddr = envFlagRunAddr
     }
 
-	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
+	if envReportInterval, ok := os.LookupEnv("REPORT_INTERVAL"); ok {
 		num, err := strconv.Atoi(envReportInterval)
 		if err != nil {
 			return cfg, fmt.Errorf("invalid REPORT_INTERVAL: %s", envReportInterval)
@@ -38,7 +38,7 @@ func ParseFlags() (AgentConfig, error){
         report = num
     }
 
-	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
+	if envPollInterval, ok := os.LookupEnv("POLL_INTERVAL"); ok {
 		num, err := strconv.Atoi(envPollInterval)
 		if err != nil {
 			return cfg, fmt.Errorf("invalid POLL_INTERVAL: %s", envPollInterval)
@@ -49,7 +49,7 @@ func ParseFlags() (AgentConfig, error){
 	cfg.ReportInterval = time.Duration(report) * time.Second
 	cfg.PollInterval = time.Duration(poll) * time.Second
 
-	if envUseBatch := os.Getenv("USE_BATCH_API"); envUseBatch != "" {
+	if envUseBatch, ok := os.LookupEnv("USE_BATCH_API"); ok {
         useBatch, err := strconv.ParseBool(envUseBatch)
         if err != nil {
             return cfg, fmt.Errorf("invalid USE_BATCH_API: %s", envUseBatch)

@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"strconv"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
+	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type MetricService struct {
-	cfg 	*serverconfig.Config
+	cfg 	*server_config.Config
 	store repository.Storage
 }
 
-func NewMetricService(cfg 	*serverconfig.Config, s repository.Storage) *MetricService {
+func NewMetricService(cfg 	*server_config.Config, s repository.Storage) *MetricService {
 	return &MetricService{cfg: cfg, store: s}
 }
 

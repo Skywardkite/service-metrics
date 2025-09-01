@@ -4,18 +4,18 @@ import (
 	"context"
 	"time"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
+	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/logger"
 	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type StorageConfig struct {
-	cfg *serverconfig.Config
+	cfg *server_config.Config
 	store repository.Storage
 }
 
-func NewStorageConfig(cfg *serverconfig.Config, store repository.Storage) *StorageConfig {
+func NewStorageConfig(cfg *server_config.Config, store repository.Storage) *StorageConfig {
 	return &StorageConfig{
 		cfg: cfg,
 		store: store,
@@ -43,8 +43,13 @@ func (c *StorageConfig) Run(ctx context.Context){
 			defer ticker.Stop()
 
 			for range ticker.C {
-				gauges, counters, _ := c.store.GetMetrics(ctx)
-				err := storage.SaveMetrics(c.cfg.FileStoragePath, gauges, counters)
+				gauges, counters, err := c.store.GetMetrics(ctx)
+				if err != nil {
+					logger.Sugar.Errorf("Failed to get metrics filestorage", "error", err)
+					return
+				}
+
+				err = storage.SaveMetrics(c.cfg.FileStoragePath, gauges, counters)
 				if err != nil {
 					logger.Sugar.Errorw("Failed to save metrics", "error", err)
 					return

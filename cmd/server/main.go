@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/server_config"
+	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	logger "github.com/Skywardkite/service-metrics/internal/logger"
@@ -21,7 +21,7 @@ func main() {
     }
 	defer logger.Sync()
 
-	cfg, err := serverconfig.ParseFlags()
+	cfg, err := server_config.ParseFlags()
     if err != nil {
 		logger.Sugar.Fatalw("Error to parse flags", "error", err)
     }
@@ -51,7 +51,7 @@ func main() {
 	}
 	
     metricService := service.NewMetricService(&cfg, store)
-    h := handler.NewHandler(metricService, store)
+    h := handler.NewHandler(metricService, store, logger.Sugar)
 
     r := chi.NewRouter()
 	// Применяем middleware ко всем роутам

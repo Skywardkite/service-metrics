@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	model "github.com/Skywardkite/service-metrics/internal/model"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func Test_sendPlainPost(t *testing.T) {
 	tests := []struct {
 		name string
 		serverHandler  http.HandlerFunc
-		client *http.Client
+		client *retryablehttp.Client
         metric model.Metrics
 		url    string
 		wantErr   bool
@@ -27,7 +28,7 @@ func Test_sendPlainPost(t *testing.T) {
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			},
-			client:      &http.Client{},
+			client:     retryablehttp.NewClient(),
             metric:     model.Metrics{
                 ID: "test",
                 MType: model.Gauge,
@@ -41,20 +42,20 @@ func Test_sendPlainPost(t *testing.T) {
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 			},
-			client:        &http.Client{},
+			client:     retryablehttp.NewClient(),
             metric:     model.Metrics{
                 ID:     "test",
                 MType:  model.Counter,
                 Delta:  &testDelta,
             },
-			url:           "/test",
-			wantErr:  		true,
-			errorMessage: "all retries failed, last error: server error: 500",
+			url:           	"/test",
+			wantErr:		true,
+			errorMessage: 	"request failed:",
 		},
 		{
 			name: "invalid URL",
 			serverHandler: nil,
-			client:        &http.Client{},
+			client:        retryablehttp.NewClient(),
 			url:           "://invalid-url",
 			wantErr:   		true,
 			errorMessage: "failed to create request: parse \"://invalid-url\": missing protocol scheme",
@@ -72,7 +73,7 @@ func Test_sendPlainPost(t *testing.T) {
 			err := sendPlainPost(tt.client, tt.url, tt.metric)
 			if tt.wantErr {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMessage, err.Error())
+				assert.Contains(t, err.Error(), tt.errorMessage)
 			} else {
 				assert.NoError(t, err)
 			}
