@@ -11,7 +11,13 @@ type MetricsPageData struct {
 }
 
 func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Request) {
-	gauges, counters := h.service.GetAllMetrics()
+	ctx := req.Context()
+    gauges, counters, err := h.service.GetAllMetrics(ctx)
+    if err != nil {
+        h.logger.Errorw("Failed to get metrics", "error", err)
+        res.WriteHeader(http.StatusInternalServerError)
+        return
+    }
 
     data := MetricsPageData{
 		Gauges:    gauges,
@@ -20,6 +26,7 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
 
     tmpl, err := template.ParseFiles("internal/templates/metrics.html")
     if err != nil {
+        h.logger.Errorw("Failed to parse file", "error", err)
         res.WriteHeader(http.StatusInternalServerError)
         return
     }
@@ -28,6 +35,7 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
     res.WriteHeader(http.StatusOK)
 
     if err := tmpl.Execute(res, data); err != nil {
+        h.logger.Errorw("Failed to execute file", "error", err)
         res.WriteHeader(http.StatusInternalServerError)
         return
 	}

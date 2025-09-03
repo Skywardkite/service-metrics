@@ -1,4 +1,4 @@
-package serverconfig
+package server_config
 
 import (
 	"flag"
@@ -13,6 +13,7 @@ type Config struct {
     StoreInternal 	time.Duration
     FileStoragePath string
     Restore         bool
+    DatabaseDSN     string
 }
 
 func ParseFlags() (Config, error){
@@ -22,13 +23,14 @@ func ParseFlags() (Config, error){
     flag.IntVar(&storeInternal, "i", 300, "server metrics update frequency")
     flag.StringVar(&cfg.FileStoragePath, "f", "./tmp/metrics.json", "path to storage")
     flag.BoolVar(&cfg.Restore, "r", true, "need to restore")
+    flag.StringVar(&cfg.DatabaseDSN, "d", "", "database connection")
     flag.Parse()
 
-	if envFlagRunAddr := os.Getenv("ADDRESS"); envFlagRunAddr != "" {
+	if envFlagRunAddr, ok := os.LookupEnv("ADDRESS"); ok {
         cfg.FlagRunAddr = envFlagRunAddr
     }
 
-    if envStoreInternal := os.Getenv("STORE_INTERVAL"); envStoreInternal != "" {
+    if envStoreInternal, ok := os.LookupEnv("STORE_INTERVAL"); ok {
 		num, err := strconv.Atoi(envStoreInternal)
 		if err != nil {
 			return cfg, fmt.Errorf("invalid STORE_INTERVAL: %s", envStoreInternal)
@@ -37,16 +39,20 @@ func ParseFlags() (Config, error){
     }
     cfg.StoreInternal = time.Duration(storeInternal) * time.Second
 
-    if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
+    if envFileStoragePath, ok := os.LookupEnv("FILE_STORAGE_PATH"); ok {
         cfg.FileStoragePath = envFileStoragePath
     }
 
-    if envRestore := os.Getenv("RESTORE"); envRestore != "" {
-        restore, err1 := strconv.ParseBool(envRestore)
-        if err1 != nil {
+    if envRestore, ok := os.LookupEnv("RESTORE"); ok {
+        restore, err := strconv.ParseBool(envRestore)
+        if err != nil {
             return cfg, fmt.Errorf("invalid RESTORE: %s", envRestore)
         }
         cfg.Restore = restore
+    }
+
+    if envDatabaseDSN, ok := os.LookupEnv("DATABASE_DSN"); ok {
+        cfg.DatabaseDSN = envDatabaseDSN
     }
 
     return cfg, nil

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -52,7 +53,7 @@ func TestMemStorage_SetGauge(t *testing.T) {
 				Gauge:   tt.fields.Gauge,
 				Counter: tt.fields.Counter,
 			}
-			s.SetGauge(tt.args.name, tt.args.value)
+			s.SetGauge(context.Background(), tt.args.name, tt.args.value)
 
 			assert.Equal(t, s.Gauge[tt.args.name], tt.want)
 		})
@@ -117,7 +118,7 @@ func TestMemStorage_SetCounter(t *testing.T) {
 				Gauge:   tt.fields.Gauge,
 				Counter: tt.fields.Counter,
 			}
-			s.SetCounter(tt.args.name, tt.args.value)
+			s.SetCounter(context.Background(), tt.args.name, tt.args.value)
 
 			assert.Equal(t, s.Counter[tt.args.name], tt.want)
 		})

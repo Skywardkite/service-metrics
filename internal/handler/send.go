@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-retryablehttp"
+
 	"github.com/Skywardkite/service-metrics/internal/agent"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
-func SendMetrics(client *http.Client, storage *agent.AgentMetrics, url string) {
+func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url string) {
     gauges, counters := storage.GetAgentMetrics()
 
     for name, value := range gauges {
@@ -34,7 +36,7 @@ func SendMetrics(client *http.Client, storage *agent.AgentMetrics, url string) {
     storage.ClearAgentCounter()
 }
 
-func sendPlainPost(client *http.Client, url string, metric model.Metrics) error {
+func sendPlainPost(client *retryablehttp.Client, url string, metric model.Metrics) error {
     jsonData, err := json.Marshal(metric)
     if err != nil {
 		return fmt.Errorf("failed to marshal metrics: %w", err)
@@ -50,9 +52,9 @@ func sendPlainPost(client *http.Client, url string, metric model.Metrics) error 
 		return fmt.Errorf("failed to close gzip writer: %w", err)
 	}
 
-    req, err := http.NewRequest(http.MethodPost, url, &buf)
+    req, err := retryablehttp.NewRequest(http.MethodPost, url, &buf)
     if err != nil {
-        return fmt.Errorf("failed to create request")
+        return fmt.Errorf("failed to create request: %w", err)
     }
     req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")

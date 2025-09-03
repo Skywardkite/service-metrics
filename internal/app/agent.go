@@ -1,12 +1,12 @@
 package app
 
 import (
-	"net/http"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
-	"github.com/Skywardkite/service-metrics/internal/config/agentConfig"
+	agentConfig "github.com/Skywardkite/service-metrics/internal/config/agent_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 )
 
@@ -22,7 +22,7 @@ func NewApp(cfg *agentConfig.AgentConfig) *AgentApp{
 
 func (app *AgentApp) Run() {
 	store := agent.NewAgentMetrics()
-	client := &http.Client{}
+	client := handler.NewRetryableClient()
 
 	pollTicker := time.NewTicker(app.cfg.PollInterval)
 	defer pollTicker.Stop()
@@ -39,7 +39,16 @@ func (app *AgentApp) Run() {
 			if !strings.HasPrefix(app.cfg.FlagRunAddr, "http://") && !strings.HasPrefix(app.cfg.FlagRunAddr, "https://") {
 				url = "http://" + app.cfg.FlagRunAddr
 			}
-			handler.SendMetrics(client, store, url + "/update/")
+
+			if app.cfg.UseBatch {
+				// Батчевая отправка
+				err := handler.SendBatch(client, store, url)
+				if err != nil {
+					log.Printf("Batch API failed, falling back to individual: %v", err)
+				}
+			} else {
+				handler.SendMetrics(client, store, url + "/update/")
+			}
 		}
 	}
 }

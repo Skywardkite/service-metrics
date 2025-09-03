@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	serverconfig "github.com/Skywardkite/service-metrics/internal/config/serverConfig"
+	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
@@ -15,11 +15,11 @@ import (
 
 func TestMain(t *testing.T) {
 	store := storage.NewMemStorage()
-	cfg := serverconfig.Config{
+	cfg := server_config.Config{
 		StoreInternal: 30,
 	}
 	metricService := service.NewMetricService(&cfg, store)
-	h := handler.NewHandler(metricService)
+	h := handler.NewHandler(metricService, nil, nil)
 
 	r := chi.NewRouter()
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
