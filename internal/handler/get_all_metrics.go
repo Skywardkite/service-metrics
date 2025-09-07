@@ -33,7 +33,7 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
     }
 
     res.Header().Set("Content-Type", "text/html")
-    res.WriteHeader(http.StatusOK)
+    
 
     if err := tmpl.Execute(res, data); err != nil {
         h.logger.Errorw("Failed to execute file", "error", err)
@@ -41,10 +41,12 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
         return
 	}
 
+    responseBody := []byte("OK")
     if h.service.Cfg.Key != "" {
-        responseBody := []byte("OK")
         hash := SignBody(responseBody, h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
-        res.Write(responseBody)
     }
+
+    res.WriteHeader(http.StatusOK)
+    res.Write(responseBody)
 }

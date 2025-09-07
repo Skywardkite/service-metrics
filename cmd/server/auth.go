@@ -2,16 +2,14 @@ package main
 
 import (
 	"bytes"
-	"compress/gzip"
 	"crypto/hmac"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/Skywardkite/service-metrics/internal/handler"
 )
 
-func authAndGzipMiddleware(key string, next http.Handler) http.Handler {
+func authMiddleware(key string, next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         if key != "" {
             // Буферизуем оригинальное тело
@@ -36,22 +34,6 @@ func authAndGzipMiddleware(key string, next http.Handler) http.Handler {
             r.Body = io.NopCloser(&bodyBuf)
         }
 
-        if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
-            gz, err := gzip.NewReader(r.Body)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-            }
-            defer gz.Close()
-            r.Body = gz
-        }
-
-        writer := &gzipResponseWriter{
-            ResponseWriter: w,
-            request:        r,
-        }
-        defer writer.Close()
-
-        next.ServeHTTP(writer, r)
+        next.ServeHTTP(w, r)
     })
 }

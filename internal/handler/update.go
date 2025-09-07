@@ -41,7 +41,6 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Собираем ответ
-	res.WriteHeader(http.StatusOK)
 	currentTime := time.Now().UTC().Format(time.RFC1123)
 	res.Header().Set("Date", currentTime)
 	responseBody := ""
@@ -53,5 +52,6 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
         res.Header().Set("HashSHA256", hash)
     }
 
+	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(responseBody))
 }
