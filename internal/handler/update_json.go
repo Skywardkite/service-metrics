@@ -65,10 +65,10 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 
 	res.Header().Set("Content-Type", "application/json")
  	res.WriteHeader(http.StatusOK)
-	if h.service.Cfg.Key != "" {
+	/* if h.service.Cfg.Key != "" {
         hash := SignBody(r, h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
-    }
+    } */
 	
     res.Write(r)
 }

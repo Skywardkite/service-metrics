@@ -41,10 +41,10 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
         return
 	}
 
-    if h.service.Cfg.Key != "" {
+    /* if h.service.Cfg.Key != "" {
         responseBody := []byte("OK")
         hash := SignBody(responseBody, h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
         res.Write(responseBody)
-    }
+    } */
 }
