@@ -57,9 +57,9 @@ func main() {
 	// Применяем middleware ко всем роутам
 	r.Use(logger.WithLogging)
 	r.Use(func(next http.Handler) http.Handler {
-		return authMiddleware(cfg.Key, next)
+		return authAndGzipMiddleware(cfg.Key, next)
 	})
-	r.Use(gzipMiddleware)
+	//r.Use(gzipMiddleware)
 	
 	// Регистрируем обработчики
     r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
