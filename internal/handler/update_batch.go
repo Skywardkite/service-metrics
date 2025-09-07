@@ -38,9 +38,8 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 
     w.Header().Set("Content-Type", "application/json")
     
-    responseBody := []byte(`{"status":"ok"}`)
+    responseBody := []byte("{}")
     if h.service.Cfg.Key != "" {
-        responseBody := []byte(`{"status":"ok"}`)
         hash := SignBody(responseBody, h.service.Cfg.Key)
         w.Header().Set("HashSHA256", hash)
     }

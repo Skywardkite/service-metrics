@@ -56,15 +56,15 @@ func (w *gzipResponseWriter) WriteHeader(code int) {
 }
 
 func (w *gzipResponseWriter) Write(b []byte) (int, error) {
-    if !w.wroteHeader {
-        w.WriteHeader(http.StatusOK)
-    }
-
     // Если Content-Type еще не установлен, пытаемся определить
     if w.Header().Get("Content-Type") == "" && len(b) > 0 {
         w.Header().Set("Content-Type", http.DetectContentType(b))
     }
 
+    if !w.wroteHeader {
+        w.WriteHeader(http.StatusOK)
+    }
+    
     if w.gzipWriter != nil {
         return w.gzipWriter.Write(b)
     }
