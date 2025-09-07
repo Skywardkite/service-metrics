@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"compress/gzip"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -18,18 +16,9 @@ func gzipMiddleware(next http.Handler) http.Handler {
                 return
             }
             defer gz.Close()
-            
-            bodyBytes, err := io.ReadAll(gz)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-            }
-
-            // Восстанавливаем r.Body, чтобы его можно было читать снова
-            // Иначе не сможем проверить хэш
-            r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+            r.Body = gz
         }
-        
+
         // Создаем обертку для ResponseWriter
         writer := &gzipResponseWriter{
             ResponseWriter: w,
