@@ -12,7 +12,6 @@ import (
 func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Request) {
 	var metric model.Metrics
     var buf bytes.Buffer
-	res.Header().Set("Content-Type", "application/json")
 	ctx := req.Context()
     if _, err := buf.ReadFrom(req.Body); err != nil {
 		h.logger.Errorw("Failed to read body", "error", err)
@@ -57,7 +56,7 @@ func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Reques
         return
     }
 
-	
+	res.Header().Set("Content-Type", "application/json")
 	if h.service.Cfg.Key != "" {
         hash := SignBody(r, h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
