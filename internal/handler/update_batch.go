@@ -10,6 +10,21 @@ import (
 func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+    if h.service.Cfg.Key != "" {
+		success, err := checkKey(r, h.service.Cfg.Key)
+		if err != nil {
+			h.logger.Errorf("Error read body", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !success {
+            h.logger.Info("no rights")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
     // Декодируем JSON
     var metrics []model.Metrics
     decoder := json.NewDecoder(r.Body)
@@ -37,5 +52,13 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
     }
 
 	w.Header().Set("Content-Type", "application/json")
+
+    if h.service.Cfg.Key != "" {
+        responseBody := []byte("OK")
+        hash := signBody(responseBody, h.service.Cfg.Key)
+        w.Header().Set("HashSHA256", hash)
+        w.Write(responseBody)
+    }
+
     w.WriteHeader(http.StatusOK)
 }

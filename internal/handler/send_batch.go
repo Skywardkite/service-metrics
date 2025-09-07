@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL string) error {
+func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL, key string) error {
 	metrics := storage.ConvertToBatch()
 	
 	// Не отправляем пустые батчи
@@ -43,6 +43,11 @@ func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, server
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Accept-Encoding", "gzip")
+
+	if key != "" {
+        hash := signBody(jsonData, key)
+        req.Header.Set("HashSHA256", hash)
+    }
 
 	resp, err := client.Do(req)
     if err != nil {

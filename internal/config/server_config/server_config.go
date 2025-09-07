@@ -14,6 +14,7 @@ type Config struct {
     FileStoragePath string
     Restore         bool
     DatabaseDSN     string
+	Key 			string
 }
 
 func ParseFlags() (Config, error){
@@ -24,6 +25,7 @@ func ParseFlags() (Config, error){
     flag.StringVar(&cfg.FileStoragePath, "f", "./tmp/metrics.json", "path to storage")
     flag.BoolVar(&cfg.Restore, "r", true, "need to restore")
     flag.StringVar(&cfg.DatabaseDSN, "d", "", "database connection")
+    flag.StringVar(&cfg.Key, "k", "", "hash key")
     flag.Parse()
 
 	if envFlagRunAddr, ok := os.LookupEnv("ADDRESS"); ok {
@@ -53,6 +55,10 @@ func ParseFlags() (Config, error){
 
     if envDatabaseDSN, ok := os.LookupEnv("DATABASE_DSN"); ok {
         cfg.DatabaseDSN = envDatabaseDSN
+    }
+
+    if envFlagKey, ok := os.LookupEnv("KEY"); ok {
+        cfg.Key = envFlagKey
     }
 
     return cfg, nil

@@ -12,12 +12,12 @@ import (
 )
 
 type MetricService struct {
-	cfg 	*server_config.Config
+	Cfg 	*server_config.Config
 	store repository.Storage
 }
 
-func NewMetricService(cfg 	*server_config.Config, s repository.Storage) *MetricService {
-	return &MetricService{cfg: cfg, store: s}
+func NewMetricService(cfg *server_config.Config, s repository.Storage) *MetricService {
+	return &MetricService{Cfg: cfg, store: s}
 }
 
 func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error {
@@ -35,8 +35,8 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 				return fmt.Errorf("failed to set gauge: %s", metricName)
 		  }
 
-		  if s.cfg.StoreInternal == 0 {
-				storage.SaveMetrics(s.cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
+		  if s.Cfg.StoreInternal == 0 {
+				storage.SaveMetrics(s.Cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
 		  }
 		  return nil
 
@@ -53,8 +53,8 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 				return fmt.Errorf("failed to set counter: %s", metricName)
 		  }
 
-		  if s.cfg.StoreInternal == 0 && s.cfg.DatabaseDSN == "" {
-				storage.SaveMetrics(s.cfg.FileStoragePath, nil, map[string]int64{metricName: value})
+		  if s.Cfg.StoreInternal == 0 && s.Cfg.DatabaseDSN == "" {
+				storage.SaveMetrics(s.Cfg.FileStoragePath, nil, map[string]int64{metricName: value})
 		  }
 		  return nil
 

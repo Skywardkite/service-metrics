@@ -42,12 +42,12 @@ func (app *AgentApp) Run() {
 
 			if app.cfg.UseBatch {
 				// Батчевая отправка
-				err := handler.SendBatch(client, store, url)
+				err := handler.SendBatch(client, store, url, app.cfg.Key)
 				if err != nil {
 					log.Printf("Batch API failed, falling back to individual: %v", err)
 				}
 			} else {
-				handler.SendMetrics(client, store, url + "/update/")
+				handler.SendMetrics(client, store, url + "/update/", app.cfg.Key)
 			}
 		}
 	}

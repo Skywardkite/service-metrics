@@ -13,6 +13,7 @@ type AgentConfig struct {
 	ReportInterval 	time.Duration
 	PollInterval   	time.Duration
 	UseBatch 		bool
+	Key 			string
 }
 
 func ParseFlags() (AgentConfig, error){
@@ -23,6 +24,7 @@ func ParseFlags() (AgentConfig, error){
     flag.IntVar(&report, "r", 10, "frequency of sending metrics")
     flag.IntVar(&poll, "p", 2, "metrics polling frequency")	
 	flag.BoolVar(&cfg.UseBatch, "b", false, "use batch API")
+	flag.StringVar(&cfg.Key, "k", "", "hash key")
     flag.Parse()
 
 
@@ -55,6 +57,10 @@ func ParseFlags() (AgentConfig, error){
             return cfg, fmt.Errorf("invalid USE_BATCH_API: %s", envUseBatch)
         }
         cfg.UseBatch = useBatch
+    }
+
+	if envFlagKey, ok := os.LookupEnv("KEY"); ok {
+        cfg.Key = envFlagKey
     }
 
     return cfg, nil

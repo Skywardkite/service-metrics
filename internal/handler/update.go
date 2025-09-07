@@ -23,7 +23,22 @@ func NewHandler(s *service.MetricService, store repository.Storage, logger *zap.
 
 func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	
+
+	if h.service.Cfg.Key != "" {
+		success, err := checkKey(req, h.service.Cfg.Key)
+		if err != nil {
+			h.logger.Errorf("Error read body", err)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !success {
+			h.logger.Info("no rights")
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
 	metricType := chi.URLParam(req, "metricType")
 	metricName := chi.URLParam(req, "metricName")
 	metricValue := chi.URLParam(req, "metricValue")
@@ -47,6 +62,11 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	responseBody := ""
 	res.Header().Set("Content-Length", fmt.Sprintf("%d", len(responseBody)))
 	res.Header().Set("Content-Type", "text/plain; charset=utf-8")
+
+	if h.service.Cfg.Key != "" {
+        hash := signBody([]byte(responseBody), h.service.Cfg.Key)
+        res.Header().Set("HashSHA256", hash)
+    }
 
 	res.Write([]byte(responseBody))
 }

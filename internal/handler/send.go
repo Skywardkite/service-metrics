@@ -13,11 +13,11 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
-func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url string) {
+func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url, key string) {
     gauges, counters := storage.GetAgentMetrics()
 
     for name, value := range gauges {
-        sendPlainPost(client, url, model.Metrics{
+        sendPlainPost(client, url, key, model.Metrics{
             ID: name,
             MType: model.Gauge,
             Value: &value,
@@ -25,7 +25,7 @@ func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url 
     }
         
     for name, delta := range counters {
-        sendPlainPost(client, url, model.Metrics{
+        sendPlainPost(client, url, key, model.Metrics{
             ID: name,
             MType: model.Counter,
             Delta: &delta,
@@ -36,7 +36,7 @@ func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url 
     storage.ClearAgentCounter()
 }
 
-func sendPlainPost(client *retryablehttp.Client, url string, metric model.Metrics) error {
+func sendPlainPost(client *retryablehttp.Client, url, key string, metric model.Metrics) error {
     jsonData, err := json.Marshal(metric)
     if err != nil {
 		return fmt.Errorf("failed to marshal metrics: %w", err)
@@ -59,6 +59,11 @@ func sendPlainPost(client *retryablehttp.Client, url string, metric model.Metric
     req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Accept-Encoding", "gzip")
+
+    if key != "" {
+        hash := signBody(jsonData, key)
+        req.Header.Set("HashSHA256", hash)
+    }
 
     resp, err := client.Do(req)
     if err != nil {

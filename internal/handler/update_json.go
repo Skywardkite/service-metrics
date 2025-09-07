@@ -10,9 +10,25 @@ import (
 )
 
 func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	
+	if h.service.Cfg.Key != "" {
+		success, err := checkKey(req, h.service.Cfg.Key)
+		if err != nil {
+			h.logger.Errorf("Error read body", err)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !success {
+			h.logger.Info("no rights")
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
 	var metric model.Metrics
     var buf bytes.Buffer
-	ctx := req.Context()
 	
     if _, err := buf.ReadFrom(req.Body); err != nil {
 		h.logger.Errorf("error reading request body", "err", err)
@@ -63,6 +79,12 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
     }
 
 	res.Header().Set("Content-Type", "application/json")
+
+	if h.service.Cfg.Key != "" {
+        hash := signBody(r, h.service.Cfg.Key)
+        res.Header().Set("HashSHA256", hash)
+    }
+	
     res.WriteHeader(http.StatusOK)
     res.Write(r)
 }
