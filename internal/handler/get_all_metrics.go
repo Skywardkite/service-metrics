@@ -48,12 +48,10 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
     }
 
     res.Header().Set("Content-Type", "text/html")
-
+    responseBody := []byte("OK")
     if h.service.Cfg.Key != "" {
-        responseBody := []byte("OK")
         hash := signBody(responseBody, h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
-        res.Write(responseBody)
     }
 
     res.WriteHeader(http.StatusOK)
@@ -63,4 +61,6 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
         res.WriteHeader(http.StatusInternalServerError)
         return
 	}
+
+    res.Write(responseBody)
 }
