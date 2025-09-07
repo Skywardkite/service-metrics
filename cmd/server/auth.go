@@ -13,6 +13,17 @@ import (
 
 func authAndGzipMiddleware(key string, next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Обработка gzip
+        if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+            gz, err := gzip.NewReader(r.Body)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            defer gz.Close()
+            r.Body = gz
+        }
+
         // Обработка авторизации
         if key != "" {
             // читаем тело для проверки подписи
@@ -31,17 +42,6 @@ func authAndGzipMiddleware(key string, next http.Handler) http.Handler {
 
             // восстанавливаем тело для обработки gzip
             r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-        }
-
-        // Обработка gzip
-        if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
-            gz, err := gzip.NewReader(r.Body)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-            }
-            defer gz.Close()
-            r.Body = gz
         }
 
         // Создаем обертку для ResponseWriter для сжатия ответа
