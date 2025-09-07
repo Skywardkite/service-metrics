@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"sync"
 
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
@@ -15,6 +16,7 @@ var (
 	ErrUnsupportedMetricType = errors.New("unsupported metric type")
 )
 type MemStorage struct {
+	mu 			sync.RWMutex
 	Gauge 		map[string]float64
 	Counter 	map[string]int64
 }
@@ -27,16 +29,22 @@ func NewMemStorage() *MemStorage {
 }
 
 func (s *MemStorage) SetGauge(ctx context.Context, name string, value float64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.Gauge[name] = value
 	return nil
 }
 
 func (s *MemStorage) SetCounter(ctx context.Context, name string, value int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.Counter[name] += value
 	return nil
 }
 
 func (s *MemStorage) GetGauge(ctx context.Context, name string) (float64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	value, ok := s.Gauge[name]
 	if !ok {
 		return 0, ErrGaugeNotFound
@@ -45,6 +53,8 @@ func (s *MemStorage) GetGauge(ctx context.Context, name string) (float64, error)
 }
 
 func (s *MemStorage) GetCounter(ctx context.Context, name string) (int64, error){
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	value, ok := s.Counter[name]
 	if !ok {
 		return 0, ErrCounterNotFound
@@ -53,6 +63,8 @@ func (s *MemStorage) GetCounter(ctx context.Context, name string) (int64, error)
 }
 
 func (s *MemStorage) GetMetrics(ctx context.Context) (map[string]float64, map[string]int64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	gauges := make(map[string]float64)
 	maps.Copy(gauges, s.Gauge)
 
@@ -68,6 +80,8 @@ func (s *MemStorage) Ping() error {
 }
 
 func (s *MemStorage) SetMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, metric := range metrics {
 		switch metric.MType {
 		case model.Gauge:
