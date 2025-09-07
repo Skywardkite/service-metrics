@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"crypto/hmac"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	model "github.com/Skywardkite/service-metrics/internal/model"
@@ -9,21 +11,6 @@ import (
 
 func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
-    if h.service.Cfg.Key != "" {
-		success, err := checkKey(r, h.service.Cfg.Key)
-		if err != nil {
-			h.logger.Errorf("Error read body", err)
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-
-		if !success {
-            h.logger.Info("no rights")
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-	}
 
     // Декодируем JSON
     var metrics []model.Metrics
@@ -35,6 +22,18 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
     }
 
     defer r.Body.Close()
+
+    jsonData, _ := json.Marshal(metrics)
+    if h.service.Cfg.Key != "" {
+        expected := signBody(jsonData, h.service.Cfg.Key)
+        received := r.Header.Get("HashSHA256")
+
+        if received == "" || !hmac.Equal([]byte(received), []byte(expected)) {
+            h.logger.Info("no rights")
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+        }
+	}
 
     // Проверяем, что батч не пустой
     if len(metrics) == 0 {
@@ -56,6 +55,7 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 
     if h.service.Cfg.Key != "" {
+        fmt.Println("error here")
         hash := signBody(responseBody, h.service.Cfg.Key)
         w.Header().Set("HashSHA256", hash)
     }
