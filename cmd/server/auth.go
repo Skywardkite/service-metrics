@@ -13,21 +13,13 @@ import (
 
 func authAndGzipMiddleware(key string, next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Обработка gzip
-        if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
-            gz, err := gzip.NewReader(r.Body)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-            }
-            defer gz.Close()
-            r.Body = gz
-        }
-
-        // Обработка авторизации
         if key != "" {
-            // читаем тело для проверки подписи
-            bodyBytes, err := io.ReadAll(r.Body)
+            // Буферизуем оригинальное тело
+            var bodyBuf bytes.Buffer
+            tee := io.TeeReader(r.Body, &bodyBuf)
+            
+            // Читаем для проверки подписи
+            bodyBytes, err := io.ReadAll(tee)
             if err != nil {
                 http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
                 return
@@ -40,11 +32,20 @@ func authAndGzipMiddleware(key string, next http.Handler) http.Handler {
                 return
             }
 
-            // восстанавливаем тело для обработки gzip
-            r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+            // Восстанавливаем оригинальное тело из буфера
+            r.Body = io.NopCloser(&bodyBuf)
         }
 
-        // Создаем обертку для ResponseWriter для сжатия ответа
+        if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+            gz, err := gzip.NewReader(r.Body)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            defer gz.Close()
+            r.Body = gz
+        }
+
         writer := &gzipResponseWriter{
             ResponseWriter: w,
             request:        r,
