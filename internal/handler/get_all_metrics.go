@@ -13,21 +13,6 @@ type MetricsPageData struct {
 func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
-    if h.service.Cfg.Key != "" {
-		success, err := checkKey(req, h.service.Cfg.Key)
-		if err != nil {
-			h.logger.Errorf("Error read body", err)
-			http.Error(res, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-
-		if !success {
-            h.logger.Info("no rights")
-			http.Error(res, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-	}
-
     gauges, counters, err := h.service.GetAllMetrics(ctx)
     if err != nil {
         h.logger.Errorw("Failed to get metrics", "error", err)
@@ -50,7 +35,7 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
     res.Header().Set("Content-Type", "text/html")
     responseBody := []byte("OK")
     if h.service.Cfg.Key != "" {
-        hash := signBody(responseBody, h.service.Cfg.Key)
+        hash := SignBody(responseBody, h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
     }
 

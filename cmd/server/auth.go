@@ -1,0 +1,39 @@
+package main
+
+import (
+	"bytes"
+	"crypto/hmac"
+	"io"
+	"net/http"
+
+	"github.com/Skywardkite/service-metrics/internal/handler"
+)
+
+func authMiddleware(key string, next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if key == "" {
+            // если ключ не задан — просто пропускаем дальше
+            next.ServeHTTP(w, r)
+            return
+        }
+
+        // читаем тело
+        bodyBytes, err := io.ReadAll(r.Body)
+        if err != nil {
+            http.Error(w, "failed to read body", http.StatusBadRequest)
+            return
+        }
+
+        expected := handler.SignBody(bodyBytes, key)
+        received := r.Header.Get("HashSHA256")
+        if received == "" || !hmac.Equal([]byte(received), []byte(expected)) {
+            http.Error(w, "invalid signature", http.StatusBadRequest)
+            return
+        }
+
+        // восстанавливаем тело для следующих хендлеров
+        r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+
+        next.ServeHTTP(w, r)
+    })
+}

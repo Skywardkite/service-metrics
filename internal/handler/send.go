@@ -61,7 +61,7 @@ func sendPlainPost(client *retryablehttp.Client, url, key string, metric model.M
 	req.Header.Set("Accept-Encoding", "gzip")
 
     if key != "" {
-        hash := signBody(jsonData, key)
+        hash := SignBody(jsonData, key)
         req.Header.Set("HashSHA256", hash)
     }
 
