@@ -10,6 +10,7 @@ import (
 
 func gzipMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		 // Обработка входящего сжатого контента
         if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
             gz, err := gzip.NewReader(r.Body)
             if err != nil {
@@ -17,19 +18,27 @@ func gzipMiddleware(next http.Handler) http.Handler {
                 return
             }
             defer gz.Close()
-
+            
             bodyBytes, err := io.ReadAll(gz)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
             }
 
-            // Восстанавливаем тело после распаковки
+            // Восстанавливаем r.Body, чтобы его можно было читать снова
+            // Иначе не сможем проверить хэш
             r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
         }
+        
+        // Создаем обертку для ResponseWriter
+        writer := &gzipResponseWriter{
+            ResponseWriter: w,
+            request:        r,
+        }
+        defer writer.Close()
 
-        next.ServeHTTP(w, r)
-    })
+		next.ServeHTTP(writer, r)
+	})
 }
 
 type gzipResponseWriter struct {
