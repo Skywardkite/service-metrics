@@ -33,12 +33,6 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
     }
 
     res.Header().Set("Content-Type", "text/html")
-    responseBody := []byte("OK")
-    if h.service.Cfg.Key != "" {
-        hash := SignBody(responseBody, h.service.Cfg.Key)
-        res.Header().Set("HashSHA256", hash)
-    }
-
     res.WriteHeader(http.StatusOK)
 
     if err := tmpl.Execute(res, data); err != nil {
@@ -47,5 +41,10 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
         return
 	}
 
-    res.Write(responseBody)
+    if h.service.Cfg.Key != "" {
+        responseBody := []byte("OK")
+        hash := SignBody(responseBody, h.service.Cfg.Key)
+        res.Header().Set("HashSHA256", hash)
+        res.Write(responseBody)
+    }
 }

@@ -24,12 +24,10 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.Header().Set("Content-Type", "text/plain")
-
+	res.WriteHeader(http.StatusOK)
 	if h.service.Cfg.Key != "" {
         hash := SignBody([]byte(value), h.service.Cfg.Key)
         res.Header().Set("HashSHA256", hash)
     }
-	
-	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(value))
 }
