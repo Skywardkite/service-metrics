@@ -16,21 +16,24 @@ func authMiddleware(key string, next http.Handler) http.Handler {
             return
         }
 
-        bodyBytes, err := io.ReadAll(r.Body)
+        // Создаем буфер для сохранения копии тела
+        var bodyBuf bytes.Buffer
+        tee := io.TeeReader(r.Body, &bodyBuf)
+        
+        // Читаем для проверки подписи (это не消耗ет оригинальное тело)
+        bodyBytes, err := io.ReadAll(tee)
         if err != nil {
             http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
             return
         }
 
+        // Проверяем подпись
         expected := handler.SignBody(bodyBytes, key)
         received := r.Header.Get("HashSHA256")
         if received == "" || !hmac.Equal([]byte(received), []byte(expected)) {
             http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
             return
         }
-
-        // Восстанавливаем оригинальное тело из буфера
-        r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
         next.ServeHTTP(w, r)
     })
