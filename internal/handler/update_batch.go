@@ -14,13 +14,13 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 		success, err := checkKey(r, h.service.Cfg.Key)
 		if err != nil {
 			h.logger.Errorf("Error read body", err)
-			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		if !success {
             h.logger.Info("no rights")
-			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 	}

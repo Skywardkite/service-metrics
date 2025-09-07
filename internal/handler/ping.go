@@ -9,13 +9,13 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 		success, err := checkKey(req, h.service.Cfg.Key)
 		if err != nil {
 			h.logger.Errorf("Error read body", err)
-			res.WriteHeader(http.StatusBadRequest)
+			http.Error(res, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		if !success {
 			h.logger.Info("no rights")
-			res.WriteHeader(http.StatusBadRequest)
+			http.Error(res, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 	}
