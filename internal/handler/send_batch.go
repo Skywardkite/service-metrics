@@ -19,6 +19,8 @@ func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, server
 		return nil
 	}
 
+	storage.ClearAgentCounter()
+
 	jsonData, err := json.Marshal(metrics)
 	if err != nil {
 		return fmt.Errorf("failed to marshal metrics: %w", err)
@@ -59,6 +61,5 @@ func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, server
         return fmt.Errorf("non-OK response status: %d", resp.StatusCode)
     }
 
-	storage.ClearAgentCounter()
     return nil
 }
