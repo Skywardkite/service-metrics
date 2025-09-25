@@ -16,7 +16,7 @@ func authMiddleware(key string, next http.Handler) http.Handler {
 			return
 		}
 
-		// Читаем для проверки подписи (это не消耗ет оригинальное тело)
+		// Читаем для проверки подписи
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)

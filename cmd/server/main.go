@@ -56,9 +56,9 @@ func main() {
 	r := chi.NewRouter()
 	// Применяем middleware ко всем роутам
 	r.Use(logger.WithLogging)
-	/* r.Use(func(next http.Handler) http.Handler {
+	r.Use(func(next http.Handler) http.Handler {
 		return authMiddleware(cfg.Key, next)
-	}) */
+	})
 	r.Use(gzipMiddleware)
 
 	// Регистрируем обработчики

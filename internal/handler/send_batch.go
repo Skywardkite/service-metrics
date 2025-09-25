@@ -47,7 +47,7 @@ func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, server
 	req.Header.Set("Accept-Encoding", "gzip")
 
 	if key != "" {
-		hash := SignBody(jsonData, key)
+		hash := SignBody(buf.Bytes(), key)
 		req.Header.Set("HashSHA256", hash)
 	}
 
