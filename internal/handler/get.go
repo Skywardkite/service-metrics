@@ -23,7 +23,7 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.Header().Set("Content-Type", "text/plain")
+	res.Header().Set("Content-Type", "application/json")
 	if h.service.Cfg.Key != "" {
 		hash := SignBody([]byte(value), h.service.Cfg.Key)
 		res.Header().Set("HashSHA256", hash)
