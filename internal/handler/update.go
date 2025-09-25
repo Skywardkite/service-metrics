@@ -45,7 +45,7 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Date", currentTime)
 	responseBody := ""
 	res.Header().Set("Content-Length", fmt.Sprintf("%d", len(responseBody)))
-	res.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	res.Header().Set("Content-Type", "application/json")
 
 	if h.service.Cfg.Key != "" {
 		hash := SignBody([]byte(responseBody), h.service.Cfg.Key)

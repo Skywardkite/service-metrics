@@ -48,7 +48,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedHeaders: map[string]string{
-				"Content-Type":   "text/plain; charset=utf-8",
+				"Content-Type":   "application/json",
 				"Content-Length": "0",
 			},
 		},
@@ -62,7 +62,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedHeaders: map[string]string{
-				"Content-Type":   "text/plain; charset=utf-8",
+				"Content-Type":   "application/json",
 				"Content-Length": "0",
 			},
 		},
