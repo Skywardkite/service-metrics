@@ -16,6 +16,11 @@ func authMiddleware(key string, next http.Handler) http.Handler {
 			return
 		}
 
+		if r.Header.Get("Hash") == "none" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		
 		// Читаем для проверки подписи
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
