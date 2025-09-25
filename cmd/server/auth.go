@@ -16,7 +16,7 @@ func authMiddleware(key string, next http.Handler) http.Handler {
 			return
 		}
 
-		if r.Header.Get("Hash") == "" && r.Header.Get("HashSHA256") == "" {
+		if r.Header.Get("Hash") == "" || r.Header.Get("HashSHA256") == "" {
             next.ServeHTTP(w, r)
             return
         }
