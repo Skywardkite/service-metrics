@@ -11,15 +11,10 @@ import (
 
 func authMiddleware(key string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if key == "" || r.Header.Get("Hash") == "none" {
+		if key == "" || r.Header.Get("HashSHA256") == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
-
-		if r.Header.Get("Hash") == "" || r.Header.Get("HashSHA256") == "" {
-            next.ServeHTTP(w, r)
-            return
-        }
 
 		// Читаем для проверки подписи
 		bodyBytes, err := io.ReadAll(r.Body)
