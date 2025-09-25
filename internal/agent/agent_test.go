@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 func TestPollRuntimeMetrics(t *testing.T) {
 	storage := NewAgentMetrics()
 	PollRuntimeMetrics(storage)

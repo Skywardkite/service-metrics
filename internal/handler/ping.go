@@ -19,9 +19,9 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 
 	responseBody := []byte("OK")
 	if h.service.Cfg.Key != "" {
-        hash := SignBody(responseBody, h.service.Cfg.Key)
-        res.Header().Set("HashSHA256", hash)
-    }
+		hash := SignBody(responseBody, h.service.Cfg.Key)
+		res.Header().Set("HashSHA256", hash)
+	}
 	res.WriteHeader(http.StatusOK)
 	res.Write(responseBody)
 }

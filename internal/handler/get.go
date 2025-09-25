@@ -11,12 +11,12 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 
 	metricType := chi.URLParam(req, "metricType")
 	metricName := chi.URLParam(req, "metricName")
-	
+
 	if metricName == "" {
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
-	
+
 	value, err := h.service.GetMetric(ctx, metricType, metricName)
 	if err != nil {
 		res.WriteHeader(http.StatusNotFound)
@@ -25,9 +25,9 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "text/plain")
 	if h.service.Cfg.Key != "" {
-        hash := SignBody([]byte(value), h.service.Cfg.Key)
-        res.Header().Set("HashSHA256", hash)
-    }
+		hash := SignBody([]byte(value), h.service.Cfg.Key)
+		res.Header().Set("HashSHA256", hash)
+	}
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(value))
 }

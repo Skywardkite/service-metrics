@@ -17,18 +17,18 @@ import (
 
 func main() {
 	if err := logger.Initialize(); err != nil {
-        log.Fatal("Error to initialize logger:", err)
-    }
+		log.Fatal("Error to initialize logger:", err)
+	}
 	defer logger.Sync()
 
 	cfg, err := server_config.ParseFlags()
-    if err != nil {
+	if err != nil {
 		logger.Sugar.Fatalw("Error to parse flags", "error", err)
-    }
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	
+
 	var store repository.Storage
 
 	if cfg.DatabaseDSN != "" {
@@ -38,7 +38,7 @@ func main() {
 		}
 		store = pgStore
 
-		 // Закрываем соединение при завершении программы
+		// Закрываем соединение при завершении программы
 		defer func() {
 			if err := pgStore.Close(); err != nil {
 				logger.Sugar.Errorw("Failed to close database", "error", err)
@@ -49,20 +49,20 @@ func main() {
 		fileStorage := filestorage.NewStorageConfig(&cfg, store)
 		fileStorage.Run(ctx)
 	}
-	
-    metricService := service.NewMetricService(&cfg, store)
-    h := handler.NewHandler(metricService, store, logger.Sugar)
 
-    r := chi.NewRouter()
+	metricService := service.NewMetricService(&cfg, store)
+	h := handler.NewHandler(metricService, store, logger.Sugar)
+
+	r := chi.NewRouter()
 	// Применяем middleware ко всем роутам
 	r.Use(logger.WithLogging)
 	r.Use(func(next http.Handler) http.Handler {
 		return authMiddleware(cfg.Key, next)
 	})
 	r.Use(gzipMiddleware)
-	
+
 	// Регистрируем обработчики
-    r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
 	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
 	r.Get("/", h.GetAllMetricsHandler)
 	r.Get("/ping", h.PingHandler)
@@ -70,7 +70,7 @@ func main() {
 	r.Post("/update/", h.UpdateJSONHandler)
 	r.Post("/updates/", h.UpdateMetricsBatchJSONHandler)
 	r.Post("/value/", h.GetMetricJSONHandler)
-   	if err := http.ListenAndServe(cfg.FlagRunAddr, r); err != nil {
+	if err := http.ListenAndServe(cfg.FlagRunAddr, r); err != nil {
 		logger.Sugar.Fatalw("Error to listen server", err.Error(), "event", "start server")
 	}
 }

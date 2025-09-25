@@ -14,9 +14,9 @@ type AgentApp struct {
 	cfg *agentConfig.AgentConfig
 }
 
-func NewApp(cfg *agentConfig.AgentConfig) *AgentApp{
+func NewApp(cfg *agentConfig.AgentConfig) *AgentApp {
 	return &AgentApp{
-		cfg:	cfg,
+		cfg: cfg,
 	}
 }
 
@@ -32,7 +32,7 @@ func (app *AgentApp) Run() {
 
 	for {
 		select {
-		case <-pollTicker.C:			
+		case <-pollTicker.C:
 			agent.PollRuntimeMetrics(store)
 		case <-reportTicker.C:
 			url := app.cfg.FlagRunAddr
@@ -47,7 +47,7 @@ func (app *AgentApp) Run() {
 					log.Printf("Batch API failed, falling back to individual: %v", err)
 				}
 			} else {
-				handler.SendMetrics(client, store, url + "/update/", app.cfg.Key)
+				handler.SendMetrics(client, store, url+"/update/", app.cfg.Key)
 			}
 		}
 	}

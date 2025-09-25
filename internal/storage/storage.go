@@ -10,21 +10,22 @@ import (
 )
 
 var (
-	ErrCounterNotFound = errors.New("metric counter not found")
-	ErrGaugeNotFound = errors.New("metric gauge not found")
-	ErrConnectToDB = errors.New("metric counter not found")
+	ErrCounterNotFound       = errors.New("metric counter not found")
+	ErrGaugeNotFound         = errors.New("metric gauge not found")
+	ErrConnectToDB           = errors.New("metric counter not found")
 	ErrUnsupportedMetricType = errors.New("unsupported metric type")
 )
+
 type MemStorage struct {
-	mu 			sync.RWMutex
-	Gauge 		map[string]float64
-	Counter 	map[string]int64
+	mu      sync.RWMutex
+	Gauge   map[string]float64
+	Counter map[string]int64
 }
 
 func NewMemStorage() *MemStorage {
 	return &MemStorage{
-		Gauge: 		make(map[string]float64),
-		Counter: 	make(map[string]int64),
+		Gauge:   make(map[string]float64),
+		Counter: make(map[string]int64),
 	}
 }
 
@@ -52,7 +53,7 @@ func (s *MemStorage) GetGauge(ctx context.Context, name string) (float64, error)
 	return value, nil
 }
 
-func (s *MemStorage) GetCounter(ctx context.Context, name string) (int64, error){
+func (s *MemStorage) GetCounter(ctx context.Context, name string) (int64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	value, ok := s.Counter[name]
@@ -70,7 +71,7 @@ func (s *MemStorage) GetMetrics(ctx context.Context) (map[string]float64, map[st
 
 	counters := make(map[string]int64)
 	maps.Copy(counters, s.Counter)
-		
+
 	return gauges, counters, nil
 }
 
@@ -88,7 +89,7 @@ func (s *MemStorage) SetMetricsBatch(ctx context.Context, metrics []model.Metric
 			s.Gauge[metric.ID] = *metric.Value
 		case model.Counter:
 			s.Counter[metric.ID] += *metric.Delta
-		default: 
+		default:
 			return ErrUnsupportedMetricType
 		}
 	}

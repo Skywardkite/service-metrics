@@ -20,34 +20,34 @@ func TestHandler_UpdateHandler(t *testing.T) {
 		service *service.MetricService
 	}
 	type args struct {
-		method  string
-		metricType      string
-		metricName      string
-		metricValue     string
+		method      string
+		metricType  string
+		metricName  string
+		metricValue string
 	}
 
 	store := storage.NewMemStorage()
 	cfg := server_config.Config{
 		StoreInternal: 30,
 	}
-    metricService := service.NewMetricService(&cfg, store)
+	metricService := service.NewMetricService(&cfg, store)
 
 	tests := []struct {
-		name   string
-		args   	args
-		expectedStatus     int
-		expectedHeaders    map[string]string
+		name            string
+		args            args
+		expectedStatus  int
+		expectedHeaders map[string]string
 	}{
 		{
 			name: "successful gauge update",
 			args: args{
-				method: 		http.MethodPost,
-				metricType:		model.Gauge,
-				metricName:		"temperature",
-				metricValue:	"23.5",
+				method:      http.MethodPost,
+				metricType:  model.Gauge,
+				metricName:  "temperature",
+				metricValue: "23.5",
 			},
-			expectedStatus:    http.StatusOK,
-			expectedHeaders: 	map[string]string{
+			expectedStatus: http.StatusOK,
+			expectedHeaders: map[string]string{
 				"Content-Type":   "text/plain; charset=utf-8",
 				"Content-Length": "0",
 			},
@@ -55,12 +55,12 @@ func TestHandler_UpdateHandler(t *testing.T) {
 		{
 			name: "successful counter update",
 			args: args{
-				method: 		http.MethodPost,
-				metricType:		model.Counter,
-				metricName:		"temperature",
-				metricValue:	"23",
+				method:      http.MethodPost,
+				metricType:  model.Counter,
+				metricName:  "temperature",
+				metricValue: "23",
 			},
-			expectedStatus:    http.StatusOK,
+			expectedStatus: http.StatusOK,
 			expectedHeaders: map[string]string{
 				"Content-Type":   "text/plain; charset=utf-8",
 				"Content-Length": "0",
@@ -69,32 +69,32 @@ func TestHandler_UpdateHandler(t *testing.T) {
 		{
 			name: "invalid path - too short",
 			args: args{
-				method: http.MethodPost,
-				metricType:		model.Counter,
-				metricName:		"",
-				metricValue:	"",
+				method:      http.MethodPost,
+				metricType:  model.Counter,
+				metricName:  "",
+				metricValue: "",
 			},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
 			name: "empty metric name",
 			args: args{
-				method: http.MethodPost,
-				metricType:		model.Counter,
-				metricName:		"",
-				metricValue:	"23",
+				method:      http.MethodPost,
+				metricType:  model.Counter,
+				metricName:  "",
+				metricValue: "23",
 			},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
 			name: "service returns error",
 			args: args{
-				method: http.MethodPost,
-				metricType:		model.Gauge,
-				metricName:		"temperature",
-				metricValue:	"invalid",
+				method:      http.MethodPost,
+				metricType:  model.Gauge,
+				metricName:  "temperature",
+				metricValue: "invalid",
 			},
-			expectedStatus:   http.StatusBadRequest,
+			expectedStatus: http.StatusBadRequest,
 		},
 	}
 	for _, tt := range tests {
@@ -112,11 +112,10 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			rctx.URLParams.Add("metricValue", tt.args.metricValue)
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-
 			h.UpdateHandler(res, req)
 
 			assert.Equal(t, tt.expectedStatus, res.Code)
-			
+
 			for key, value := range tt.expectedHeaders {
 				assert.Equal(t, value, res.Header().Get(key))
 			}

@@ -9,78 +9,78 @@ import (
 )
 
 func gzipMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
-            gz, err := gzip.NewReader(r.Body)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-            }
-            defer gz.Close()
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+			gz, err := gzip.NewReader(r.Body)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			defer gz.Close()
 
-            bodyBytes, err := io.ReadAll(gz)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-            }
+			bodyBytes, err := io.ReadAll(gz)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-            // Восстанавливаем тело, чтобы дальше хэндлеры могли читать
-            r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-        }
+			// Восстанавливаем тело, чтобы дальше хэндлеры могли читать
+			r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+		}
 
-        writer := &gzipResponseWriter{
-            ResponseWriter: w,
-            request:        r,
-        }
-        defer writer.Close()
+		writer := &gzipResponseWriter{
+			ResponseWriter: w,
+			request:        r,
+		}
+		defer writer.Close()
 
-        next.ServeHTTP(writer, r)
-    })
+		next.ServeHTTP(writer, r)
+	})
 }
 
 type gzipResponseWriter struct {
-    http.ResponseWriter
-    request     *http.Request
-    gzipWriter  *gzip.Writer
-    wroteHeader bool
+	http.ResponseWriter
+	request     *http.Request
+	gzipWriter  *gzip.Writer
+	wroteHeader bool
 }
 
 func (w *gzipResponseWriter) WriteHeader(code int) {
-    if w.wroteHeader {
-        return
-    }
-    w.wroteHeader = true
+	if w.wroteHeader {
+		return
+	}
+	w.wroteHeader = true
 
-    // Проверяем, нужно ли сжимать
-    contentType := w.Header().Get("Content-Type")
-    acceptsGzip := strings.Contains(w.request.Header.Get("Accept-Encoding"), "gzip")
+	// Проверяем, нужно ли сжимать
+	contentType := w.Header().Get("Content-Type")
+	acceptsGzip := strings.Contains(w.request.Header.Get("Accept-Encoding"), "gzip")
 
-    if acceptsGzip && (contentType == "text/html" || contentType == "application/json") {
-        w.Header().Set("Content-Encoding", "gzip")
-        w.gzipWriter = gzip.NewWriter(w.ResponseWriter)
-    }
+	if acceptsGzip && (contentType == "text/html" || contentType == "application/json") {
+		w.Header().Set("Content-Encoding", "gzip")
+		w.gzipWriter = gzip.NewWriter(w.ResponseWriter)
+	}
 
-    w.ResponseWriter.WriteHeader(code)
+	w.ResponseWriter.WriteHeader(code)
 }
 
 func (w *gzipResponseWriter) Write(b []byte) (int, error) {
-    // Если Content-Type еще не установлен, пытаемся определить
-    if w.Header().Get("Content-Type") == "" && len(b) > 0 {
-        w.Header().Set("Content-Type", http.DetectContentType(b))
-    }
+	// Если Content-Type еще не установлен, пытаемся определить
+	if w.Header().Get("Content-Type") == "" && len(b) > 0 {
+		w.Header().Set("Content-Type", http.DetectContentType(b))
+	}
 
-    if !w.wroteHeader {
-        w.WriteHeader(http.StatusOK)
-    }
-    
-    if w.gzipWriter != nil {
-        return w.gzipWriter.Write(b)
-    }
-    return w.ResponseWriter.Write(b)
+	if !w.wroteHeader {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	if w.gzipWriter != nil {
+		return w.gzipWriter.Write(b)
+	}
+	return w.ResponseWriter.Write(b)
 }
 
 func (w *gzipResponseWriter) Close() {
-    if w.gzipWriter != nil {
-        w.gzipWriter.Close()
-    }
+	if w.gzipWriter != nil {
+		w.gzipWriter.Close()
+	}
 }
