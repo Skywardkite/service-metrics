@@ -14,6 +14,7 @@ type AgentConfig struct {
 	PollInterval   time.Duration
 	UseBatch       bool
 	Key            string
+	RateLimit      int
 }
 
 func ParseFlags() (AgentConfig, error) {
@@ -25,6 +26,7 @@ func ParseFlags() (AgentConfig, error) {
 	flag.IntVar(&poll, "p", 2, "metrics polling frequency")
 	flag.BoolVar(&cfg.UseBatch, "b", false, "use batch API")
 	flag.StringVar(&cfg.Key, "k", "", "hash key")
+	flag.IntVar(&cfg.RateLimit, "l", 1, "rate limit (max parallel requests)")
 	flag.Parse()
 
 	if envFlagRunAddr, ok := os.LookupEnv("ADDRESS"); ok {
@@ -60,6 +62,14 @@ func ParseFlags() (AgentConfig, error) {
 
 	if envFlagKey, ok := os.LookupEnv("KEY"); ok {
 		cfg.Key = envFlagKey
+	}
+
+	if rateLimit, ok := os.LookupEnv("RATE_LIMIT"); ok {
+		num, err := strconv.Atoi(rateLimit)
+		if err != nil {
+			return cfg, fmt.Errorf("invalid RATE_LIMIT: %s", rateLimit)
+		}
+		cfg.RateLimit = num
 	}
 
 	return cfg, nil
