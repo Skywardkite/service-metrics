@@ -32,7 +32,7 @@ func TestMemStorage_SetGauge(t *testing.T) {
 				name:  "some_metric",
 				value: 65.5,
 			},
-			want:   65.5,
+			want: 65.5,
 		},
 		{
 			name: "success_new_metric",
@@ -44,7 +44,7 @@ func TestMemStorage_SetGauge(t *testing.T) {
 				name:  "some_metric",
 				value: 20,
 			},
-			want:   20,
+			want: 20,
 		},
 	}
 	for _, tt := range tests {
@@ -85,7 +85,7 @@ func TestMemStorage_SetCounter(t *testing.T) {
 				name:  "some_metric",
 				value: 65,
 			},
-			want:   75,
+			want: 75,
 		},
 		{
 			name: "success_new_metric",
@@ -97,7 +97,7 @@ func TestMemStorage_SetCounter(t *testing.T) {
 				name:  "some_metric",
 				value: 20,
 			},
-			want:   20,
+			want: 20,
 		},
 		{
 			name: "success_negative_value",
@@ -109,7 +109,7 @@ func TestMemStorage_SetCounter(t *testing.T) {
 				name:  "some_metric",
 				value: -20,
 			},
-			want:   -20,
+			want: -20,
 		},
 	}
 	for _, tt := range tests {

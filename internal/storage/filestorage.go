@@ -11,9 +11,9 @@ import (
 
 func SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 	defer file.Close()
 
 	writer := bufio.NewWriter(file)
@@ -54,15 +54,15 @@ func SaveMetrics(filePath string, gauges map[string]float64, counters map[string
 	}
 
 	if err := writer.Flush(); err != nil {
-        os.Remove(filePath)
-        return fmt.Errorf("flush error: %w", err)
-    }
+		os.Remove(filePath)
+		return fmt.Errorf("flush error: %w", err)
+	}
 
-    // 5. Атомарная замена файла
-    if err := os.Rename(filePath, filePath); err != nil {
-        os.Remove(filePath)
-        return fmt.Errorf("rename error: %w", err)
-    }
+	// 5. Атомарная замена файла
+	if err := os.Rename(filePath, filePath); err != nil {
+		os.Remove(filePath)
+		return fmt.Errorf("rename error: %w", err)
+	}
 
 	return nil
 }
@@ -91,7 +91,7 @@ func LoadMetrics(filePath string) (map[string]float64, map[string]int64, error) 
 		case model.Gauge:
 			gauges[m.ID] = *m.Value
 		case model.Counter:
-			counters[m.ID] = *m.Delta 
+			counters[m.ID] = *m.Delta
 		}
 	}
 

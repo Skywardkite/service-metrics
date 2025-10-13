@@ -11,18 +11,18 @@ import (
 
 func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Request) {
 	var metric model.Metrics
-    var buf bytes.Buffer
+	var buf bytes.Buffer
 	ctx := req.Context()
-    if _, err := buf.ReadFrom(req.Body); err != nil {
+	if _, err := buf.ReadFrom(req.Body); err != nil {
 		h.logger.Errorw("Failed to read body", "error", err)
-        http.Error(res, err.Error(), http.StatusBadRequest)
-        return
-    }
-    if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
 		h.logger.Errorw("Failed to unmarshal body", "error", err)
-        http.Error(res, err.Error(), http.StatusBadRequest)
-        return
-    }
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	value, err := h.service.GetMetric(ctx, metric.MType, metric.ID)
 	if err != nil {
@@ -31,32 +31,36 @@ func (h *Handler) GetMetricJSONHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-    // Получаем значение метрики из хранилища
-    switch metric.MType {
-    case model.Gauge:
+	// Получаем значение метрики из хранилища
+	switch metric.MType {
+	case model.Gauge:
 		floatValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			http.Error(res, "invalid gauge value", http.StatusBadRequest)
 			return
 		}
-        metric.Value = &floatValue
-    case model.Counter:
+		metric.Value = &floatValue
+	case model.Counter:
 		intValue, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			http.Error(res, "invalid counter value", http.StatusBadRequest)
 			return
 		}
-        metric.Delta = &intValue
-    }
+		metric.Delta = &intValue
+	}
 
 	r, err := json.Marshal(metric)
-    if err != nil {
+	if err != nil {
 		h.logger.Errorw("Failed to marshal metric", "error", err)
-        http.Error(res, err.Error(), http.StatusInternalServerError)
-        return
-    }
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	res.Header().Set("Content-Type", "application/json")
-    res.WriteHeader(http.StatusOK)
-    res.Write(r)
+	if h.service.Cfg.Key != "" {
+		hash := SignBody(r, h.service.Cfg.Key)
+		res.Header().Set("HashSHA256", hash)
+	}
+	res.WriteHeader(http.StatusOK)
+	res.Write(r)
 }

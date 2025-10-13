@@ -10,20 +10,21 @@ import (
 )
 
 func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) {
-	var metric model.Metrics
-    var buf bytes.Buffer
 	ctx := req.Context()
-	
-    if _, err := buf.ReadFrom(req.Body); err != nil {
+
+	var metric model.Metrics
+	var buf bytes.Buffer
+
+	if _, err := buf.ReadFrom(req.Body); err != nil {
 		h.logger.Errorf("error reading request body", "err", err)
-        http.Error(res, err.Error(), http.StatusBadRequest)
-        return
-    }
-    if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.Unmarshal(buf.Bytes(), &metric); err != nil {
 		h.logger.Errorf("error unmarshalling request body", "err", err)
-        http.Error(res, err.Error(), http.StatusBadRequest)
-        return
-    }
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if metric.ID == "" {
 		h.logger.Info("metric ID is empty")
@@ -56,13 +57,18 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 	}
 
 	r, err := json.Marshal(metric)
-    if err != nil {
+	if err != nil {
 		h.logger.Errorf("error marshalling response", "err", err)
-        http.Error(res, err.Error(), http.StatusInternalServerError)
-        return
-    }
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	res.Header().Set("Content-Type", "application/json")
-    res.WriteHeader(http.StatusOK)
-    res.Write(r)
+	if h.service.Cfg.Key != "" {
+		hash := SignBody(r, h.service.Cfg.Key)
+		res.Header().Set("HashSHA256", hash)
+	}
+
+	res.WriteHeader(http.StatusOK)
+	res.Write(r)
 }

@@ -11,7 +11,7 @@ const querySetGauge = `
 `
 
 func (r *PostgresStorage) SetGauge(ctx context.Context, name string, value float64) error {
-	
+
 	_, err := r.db.ExecContext(ctx, querySetGauge, name, value)
 
 	return err

@@ -1,20 +1,25 @@
 package agent
 
 import (
+	"fmt"
+	"log"
 	"maps"
 	"math/rand/v2"
 	"runtime"
+
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
 type AgentMetrics struct {
-	Gauge 		map[string]float64
-	Counter 	map[string]int64
+	Gauge   map[string]float64
+	Counter map[string]int64
 }
 
 func NewAgentMetrics() *AgentMetrics {
 	return &AgentMetrics{
-		Gauge: 		make(map[string]float64),
-		Counter: 	make(map[string]int64),
+		Gauge:   make(map[string]float64),
+		Counter: make(map[string]int64),
 	}
 }
 
@@ -73,5 +78,26 @@ func PollRuntimeMetrics(storage *AgentMetrics) {
 func (s *AgentMetrics) ClearAgentCounter() {
 	for k := range s.Counter {
 		s.Counter[k] = 0
+	}
+}
+
+func PollSystemMetrics(storage *AgentMetrics) {
+	v, err := mem.VirtualMemory()
+	if err != nil {
+		log.Printf("failed to get virtual memory: %v", err)
+		return
+	}
+
+	storage.SetAgentGauge("TotalMemory", float64(v.Total))
+	storage.SetAgentGauge("FreeMemory", float64(v.Available))
+
+	cpuPercents, err := cpu.Percent(0, true)
+	if err != nil {
+		log.Printf("failed to get CPU percent: %v", err)
+		return
+	}
+
+	for i, percent := range cpuPercents {
+		storage.SetAgentGauge(fmt.Sprintf("CPUutilization%d", i+1), percent)
 	}
 }

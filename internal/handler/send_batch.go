@@ -11,13 +11,15 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL string) error {
+func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL, key string) error {
 	metrics := storage.ConvertToBatch()
-	
+
 	// Не отправляем пустые батчи
 	if len(metrics) == 0 {
 		return nil
 	}
+
+	storage.ClearAgentCounter()
 
 	jsonData, err := json.Marshal(metrics)
 	if err != nil {
@@ -44,16 +46,20 @@ func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, server
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Accept-Encoding", "gzip")
 
+	if key != "" {
+		hash := SignBody(buf.Bytes(), key)
+		req.Header.Set("HashSHA256", hash)
+	}
+
 	resp, err := client.Do(req)
-    if err != nil {
-        return fmt.Errorf("failed to send request after retries: %w", err)
-    }
-    defer resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("failed to send request after retries: %w", err)
+	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-        return fmt.Errorf("non-OK response status: %d", resp.StatusCode)
-    }
+		return fmt.Errorf("non-OK response status: %d", resp.StatusCode)
+	}
 
-	storage.ClearAgentCounter()
-    return nil
+	return nil
 }

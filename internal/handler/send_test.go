@@ -11,30 +11,30 @@ import (
 )
 
 func Test_sendPlainPost(t *testing.T) {
-    testValue := 45.979785
-    testDelta := int64(6767884)
+	testValue := 45.979785
+	testDelta := int64(6767884)
 
 	tests := []struct {
-		name string
-		serverHandler  http.HandlerFunc
-		client *retryablehttp.Client
-        metric model.Metrics
-		url    string
-		wantErr   bool
-		errorMessage string
+		name          string
+		serverHandler http.HandlerFunc
+		client        *retryablehttp.Client
+		metric        model.Metrics
+		url           string
+		wantErr       bool
+		errorMessage  string
 	}{
 		{
 			name: "successful request",
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			},
-			client:     retryablehttp.NewClient(),
-            metric:     model.Metrics{
-                ID: "test",
-                MType: model.Gauge,
-                Value: &testValue,
-            },
-			url:         "/test",
+			client: retryablehttp.NewClient(),
+			metric: model.Metrics{
+				ID:    "test",
+				MType: model.Gauge,
+				Value: &testValue,
+			},
+			url:     "/test",
 			wantErr: false,
 		},
 		{
@@ -42,23 +42,23 @@ func Test_sendPlainPost(t *testing.T) {
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 			},
-			client:     retryablehttp.NewClient(),
-            metric:     model.Metrics{
-                ID:     "test",
-                MType:  model.Counter,
-                Delta:  &testDelta,
-            },
-			url:           	"/test",
-			wantErr:		true,
-			errorMessage: 	"request failed:",
+			client: retryablehttp.NewClient(),
+			metric: model.Metrics{
+				ID:    "test",
+				MType: model.Counter,
+				Delta: &testDelta,
+			},
+			url:          "/test",
+			wantErr:      true,
+			errorMessage: "request failed:",
 		},
 		{
-			name: "invalid URL",
+			name:          "invalid URL",
 			serverHandler: nil,
 			client:        retryablehttp.NewClient(),
 			url:           "://invalid-url",
-			wantErr:   		true,
-			errorMessage: "failed to create request: parse \"://invalid-url\": missing protocol scheme",
+			wantErr:       true,
+			errorMessage:  "failed to create request: parse \"://invalid-url\": missing protocol scheme",
 		},
 	}
 	for _, tt := range tests {
@@ -70,7 +70,7 @@ func Test_sendPlainPost(t *testing.T) {
 				tt.url = server.URL + tt.url
 			}
 
-			err := sendPlainPost(tt.client, tt.url, tt.metric)
+			err := sendPlainPost(tt.client, tt.url, "test_key", tt.metric)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errorMessage)

@@ -10,7 +10,7 @@ func NewStorage(cfg *serverconfig.Config) (repository.Storage, error) {
 		// Используем PostgreSQL
 		return repository.New(cfg.DatabaseDSN)
 	}
-	
+
 	// Используем память с файловой синхронизацией
 	return NewMemStorage(), nil
 }

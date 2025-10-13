@@ -53,18 +53,18 @@ func (r *PostgresStorage) Ping() error {
 }
 
 func applyMigrations(dsn string) error {
-    m, err := migrate.New(
-        "file://migrations",
-        dsn,
-    )
-    if err != nil {
-        return fmt.Errorf("failed to create migrate instance: %w", err)
-    }
+	m, err := migrate.New(
+		"file://migrations",
+		dsn,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
 
-    // Применяем все новые миграции
-    if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-        return fmt.Errorf("failed to apply migrations: %w", err)
-    }
+	// Применяем все новые миграции
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("failed to apply migrations: %w", err)
+	}
 
-    return nil
+	return nil
 }

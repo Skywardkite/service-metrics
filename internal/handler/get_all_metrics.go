@@ -6,37 +6,46 @@ import (
 )
 
 type MetricsPageData struct {
-	Gauges    map[string]float64
-	Counters  map[string]int64
+	Gauges   map[string]float64
+	Counters map[string]int64
 }
 
 func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-    gauges, counters, err := h.service.GetAllMetrics(ctx)
-    if err != nil {
-        h.logger.Errorw("Failed to get metrics", "error", err)
-        res.WriteHeader(http.StatusInternalServerError)
-        return
-    }
 
-    data := MetricsPageData{
-		Gauges:    gauges,
-		Counters:  counters,
+	gauges, counters, err := h.service.GetAllMetrics(ctx)
+	if err != nil {
+		h.logger.Errorw("Failed to get metrics", "error", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-    tmpl, err := template.ParseFiles("internal/templates/metrics.html")
-    if err != nil {
-        h.logger.Errorw("Failed to parse file", "error", err)
-        res.WriteHeader(http.StatusInternalServerError)
-        return
-    }
-
-    res.Header().Set("Content-Type", "text/html")
-    res.WriteHeader(http.StatusOK)
-
-    if err := tmpl.Execute(res, data); err != nil {
-        h.logger.Errorw("Failed to execute file", "error", err)
-        res.WriteHeader(http.StatusInternalServerError)
-        return
+	data := MetricsPageData{
+		Gauges:   gauges,
+		Counters: counters,
 	}
+
+	tmpl, err := template.ParseFiles("internal/templates/metrics.html")
+	if err != nil {
+		h.logger.Errorw("Failed to parse file", "error", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-Type", "text/html")
+
+	if err := tmpl.Execute(res, data); err != nil {
+		h.logger.Errorw("Failed to execute file", "error", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	responseBody := []byte("OK")
+	if h.service.Cfg.Key != "" {
+		hash := SignBody(responseBody, h.service.Cfg.Key)
+		res.Header().Set("HashSHA256", hash)
+	}
+
+	res.WriteHeader(http.StatusOK)
+	res.Write(responseBody)
 }

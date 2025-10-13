@@ -16,12 +16,12 @@ type responseWriterWrapper struct {
 }
 
 func Initialize() error {
-    logger, err := zap.NewDevelopment()
-    if err != nil {
-        return err
-    }
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		return err
+	}
 
-    Sugar = logger.Sugar()
+	Sugar = logger.Sugar()
 	return nil
 }
 

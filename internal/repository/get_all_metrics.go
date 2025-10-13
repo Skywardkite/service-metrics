@@ -11,11 +11,11 @@ func (r *PostgresStorage) GetMetrics(ctx context.Context) (map[string]float64, m
 	var countersEntity []Counter
 
 	err := r.db.SelectContext(ctx, &gaugesEntity, `SELECT * FROM gauges`)
-	if err != nil && !errors.Is(err, sql.ErrNoRows){
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}
 	err = r.db.SelectContext(ctx, &countersEntity, `SELECT * FROM counters`)
-	if err != nil && !errors.Is(err, sql.ErrNoRows){
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}
 

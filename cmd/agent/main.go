@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-    cfg, err := agentConfig.ParseFlags()
-    if err != nil {
-        log.Fatal("Error to parse flags:", err)
-    }
-    
-    a := app.NewApp(&cfg)
-    a.Run()
+	cfg, err := agentConfig.ParseFlags()
+	if err != nil {
+		log.Fatal("Error to parse flags:", err)
+	}
+
+	a := app.NewApp(&cfg)
+	a.Run()
 }

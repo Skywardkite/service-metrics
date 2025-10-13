@@ -11,18 +11,18 @@ import (
 )
 
 type StorageConfig struct {
-	cfg *server_config.Config
+	cfg   *server_config.Config
 	store repository.Storage
 }
 
 func NewStorageConfig(cfg *server_config.Config, store repository.Storage) *StorageConfig {
 	return &StorageConfig{
-		cfg: cfg,
+		cfg:   cfg,
 		store: store,
 	}
 }
 
-func (c *StorageConfig) Run(ctx context.Context){
+func (c *StorageConfig) Run(ctx context.Context) {
 	if c.cfg.Restore {
 		if gauges, counters, err := storage.LoadMetrics(c.cfg.FileStoragePath); err == nil {
 			for name, value := range gauges {
