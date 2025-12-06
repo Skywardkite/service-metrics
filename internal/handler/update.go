@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/go-chi/chi/v5"
@@ -15,10 +16,11 @@ type Handler struct {
 	service *service.MetricService
 	store   repository.Storage
 	logger  *zap.SugaredLogger
+	audit   *audit.AuditPublisher
 }
 
-func NewHandler(s *service.MetricService, store repository.Storage, logger *zap.SugaredLogger) *Handler {
-	return &Handler{service: s, store: store, logger: logger}
+func NewHandler(s *service.MetricService, store repository.Storage, logger *zap.SugaredLogger, audit *audit.AuditPublisher) *Handler {
+	return &Handler{service: s, store: store, logger: logger, audit: audit}
 }
 
 func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
@@ -39,6 +41,14 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	// Отправка события
+	ip := clientIP(req)
+	h.audit.Publish(audit.AuditEvent{
+		TS:        time.Now().Unix(),
+		Metrics:   []string{metricName},
+		IPAddress: ip,
+	})
 
 	// Собираем ответ
 	currentTime := time.Now().UTC().Format(time.RFC1123)

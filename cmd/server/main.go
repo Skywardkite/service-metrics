@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
@@ -50,8 +51,20 @@ func main() {
 		fileStorage.Run(ctx)
 	}
 
+	publisher := audit.NewAuditPublisher()
+
+	if cfg.AuditFile != "" {
+		fileObs := &audit.FileObserver{FilePath: cfg.AuditFile}
+		publisher.Subscribe(fileObs)
+	}
+
+	if cfg.AuditURL != "" {
+		httpObs := &audit.HttpObserver{URL: cfg.AuditURL}
+		publisher.Subscribe(httpObs)
+	}
+
 	metricService := service.NewMetricService(&cfg, store)
-	h := handler.NewHandler(metricService, store, logger.Sugar)
+	h := handler.NewHandler(metricService, store, logger.Sugar, publisher)
 
 	r := chi.NewRouter()
 	// Применяем middleware ко всем роутам

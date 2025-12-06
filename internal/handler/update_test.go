@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/service"
@@ -100,7 +101,8 @@ func TestHandler_UpdateHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zap.NewNop().Sugar()
-			h := NewHandler(metricService, nil, logger)
+			auditPublisher := audit.NewAuditPublisher()
+			h := NewHandler(metricService, nil, logger, auditPublisher)
 
 			req := httptest.NewRequest(tt.args.method, "/", nil)
 			res := httptest.NewRecorder()

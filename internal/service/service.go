@@ -17,7 +17,10 @@ type MetricService struct {
 }
 
 func NewMetricService(cfg *server_config.Config, s repository.Storage) *MetricService {
-	return &MetricService{Cfg: cfg, store: s}
+	return &MetricService{
+		Cfg:   cfg,
+		store: s,
+	}
 }
 
 func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error {
@@ -38,6 +41,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 		if s.Cfg.StoreInternal == 0 {
 			storage.SaveMetrics(s.Cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
 		}
+
 		return nil
 
 	case model.Counter:
@@ -56,6 +60,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 		if s.Cfg.StoreInternal == 0 && s.Cfg.DatabaseDSN == "" {
 			storage.SaveMetrics(s.Cfg.FileStoragePath, nil, map[string]int64{metricName: value})
 		}
+
 		return nil
 
 	default:

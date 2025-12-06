@@ -3,7 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
@@ -35,6 +37,20 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	// Отправка события
+	ip := clientIP(r)
+
+	var metricNames []string
+	for _, m := range metrics {
+		metricNames = append(metricNames, m.ID)
+	}
+
+	h.audit.Publish(audit.AuditEvent{
+		TS:        time.Now().Unix(),
+		Metrics:   metricNames,
+		IPAddress: ip,
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
@@ -55,6 +57,14 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	// Отправка события
+	ip := clientIP(req)
+	h.audit.Publish(audit.AuditEvent{
+		TS:        time.Now().Unix(),
+		Metrics:   []string{metric.ID},
+		IPAddress: ip,
+	})
 
 	r, err := json.Marshal(metric)
 	if err != nil {
