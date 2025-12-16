@@ -6,7 +6,22 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
+
+var gzipPool = sync.Pool{
+	New: func() any {
+		w, _ := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
+		return w
+	},
+}
+
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	request     *http.Request
+	gzipWriter  *gzip.Writer
+	wroteHeader bool
+}
 
 func gzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -38,13 +53,6 @@ func gzipMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-type gzipResponseWriter struct {
-	http.ResponseWriter
-	request     *http.Request
-	gzipWriter  *gzip.Writer
-	wroteHeader bool
-}
-
 func (w *gzipResponseWriter) WriteHeader(code int) {
 	if w.wroteHeader {
 		return
@@ -57,18 +65,16 @@ func (w *gzipResponseWriter) WriteHeader(code int) {
 
 	if acceptsGzip && (contentType == "text/html" || contentType == "application/json") {
 		w.Header().Set("Content-Encoding", "gzip")
-		w.gzipWriter = gzip.NewWriter(w.ResponseWriter)
+
+		gz := gzipPool.Get().(*gzip.Writer)
+		gz.Reset(w.ResponseWriter)
+		w.gzipWriter = gz
 	}
 
 	w.ResponseWriter.WriteHeader(code)
 }
 
 func (w *gzipResponseWriter) Write(b []byte) (int, error) {
-	// Если Content-Type еще не установлен, пытаемся определить
-	if w.Header().Get("Content-Type") == "" && len(b) > 0 {
-		w.Header().Set("Content-Type", http.DetectContentType(b))
-	}
-
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -82,5 +88,6 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 func (w *gzipResponseWriter) Close() {
 	if w.gzipWriter != nil {
 		w.gzipWriter.Close()
+		gzipPool.Put(w.gzipWriter)
 	}
 }

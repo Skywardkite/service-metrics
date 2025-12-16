@@ -6,12 +6,14 @@ import (
 	"maps"
 	"math/rand/v2"
 	"runtime"
+	"sync"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/v4/mem"
 )
 
 type AgentMetrics struct {
+	mu      sync.Mutex
 	Gauge   map[string]float64
 	Counter map[string]int64
 }
@@ -24,14 +26,23 @@ func NewAgentMetrics() *AgentMetrics {
 }
 
 func (s *AgentMetrics) SetAgentGauge(name string, value float64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.Gauge[name] = value
 }
 
 func (s *AgentMetrics) SetAgentCounter(name string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.Counter[name]++
 }
 
 func (s *AgentMetrics) GetAgentMetrics() (map[string]float64, map[string]int64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	g := s.Gauge
 	c := s.Counter
 	maps.Copy(g, s.Gauge)
