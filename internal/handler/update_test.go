@@ -6,14 +6,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+
 	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 )
 
 func TestHandler_UpdateHandler(t *testing.T) {

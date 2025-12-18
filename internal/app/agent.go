@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
+
 	"github.com/Skywardkite/service-metrics/internal/agent"
 	agentConfig "github.com/Skywardkite/service-metrics/internal/config/agent_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
-	"github.com/hashicorp/go-retryablehttp"
 )
 
 type AgentApp struct {

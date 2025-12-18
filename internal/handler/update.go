@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
+
 	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
-	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 )
 
 type Handler struct {

@@ -5,9 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
+
+	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
 func Test_sendPlainPost(t *testing.T) {
