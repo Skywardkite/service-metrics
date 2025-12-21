@@ -1,11 +1,10 @@
-package main
+// Package server — HTTP-сервер для хранения и отображения метрик.
+package server
 
 import (
 	"context"
 	"log"
 	"net/http"
-
-	"net/http/pprof"
 
 	"github.com/go-chi/chi/v5"
 
@@ -18,20 +17,6 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )
-
-func mountPprof(r chi.Router) {
-	r.HandleFunc("/", pprof.Index)
-	r.HandleFunc("/cmdline", pprof.Cmdline)
-	r.HandleFunc("/profile", pprof.Profile)
-	r.HandleFunc("/symbol", pprof.Symbol)
-	r.HandleFunc("/trace", pprof.Trace)
-	r.HandleFunc("/allocs", pprof.Handler("allocs").ServeHTTP)
-	r.HandleFunc("/block", pprof.Handler("block").ServeHTTP)
-	r.HandleFunc("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-	r.HandleFunc("/heap", pprof.Handler("heap").ServeHTTP)
-	r.HandleFunc("/mutex", pprof.Handler("mutex").ServeHTTP)
-	r.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-}
 
 func main() {
 	if err := logger.Initialize(); err != nil {
@@ -88,13 +73,12 @@ func main() {
 	// Применяем middleware ко всем роутам
 	r.Use(logger.WithLogging)
 	r.Use(func(next http.Handler) http.Handler {
-		return authMiddleware(cfg.Key, next)
+		return AuthMiddleware(cfg.Key, next)
 	})
-	r.Use(gzipMiddleware)
+	r.Use(GzipMiddleware)
 
-	// pprof на /debug/pprof
 	r.Route("/debug/pprof", func(pp chi.Router) {
-		mountPprof(pp)
+		MountPprof(pp)
 	})
 
 	// Регистрируем обработчики

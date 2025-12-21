@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// MetricsPageData собирает все метрики, чтобы передать их в шаблон metrics.html.
 type MetricsPageData struct {
 	Gauges   map[string]float64
 	Counters map[string]int64

@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bytes"
@@ -9,13 +9,15 @@ import (
 	"sync"
 )
 
-var gzipPool = sync.Pool{
+// GzipPool пул для повторного использования gzip.Writer.
+var GzipPool = sync.Pool{
 	New: func() any {
 		w, _ := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
 		return w
 	},
 }
 
+// gzipResponseWriter оборачивает http.ResponseWriter и добавляет поддержку gzip сжатия для ответов.
 type gzipResponseWriter struct {
 	http.ResponseWriter
 	request     *http.Request
@@ -23,7 +25,8 @@ type gzipResponseWriter struct {
 	wroteHeader bool
 }
 
-func gzipMiddleware(next http.Handler) http.Handler {
+// GzipMiddleware функция-обертка для добавления middleware сжатия ответов.
+func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			gz, err := gzip.NewReader(r.Body)
@@ -53,6 +56,8 @@ func gzipMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// WriteHeader реализует интерфейс http.ResponseWriter.
+// Записывает статус ответа и устанавливает заголовки для сжатия, если это необходимо.
 func (w *gzipResponseWriter) WriteHeader(code int) {
 	if w.wroteHeader {
 		return
@@ -66,7 +71,7 @@ func (w *gzipResponseWriter) WriteHeader(code int) {
 	if acceptsGzip && (contentType == "text/html" || contentType == "application/json") {
 		w.Header().Set("Content-Encoding", "gzip")
 
-		gz := gzipPool.Get().(*gzip.Writer)
+		gz := GzipPool.Get().(*gzip.Writer)
 		gz.Reset(w.ResponseWriter)
 		w.gzipWriter = gz
 	}
@@ -88,6 +93,6 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 func (w *gzipResponseWriter) Close() {
 	if w.gzipWriter != nil {
 		w.gzipWriter.Close()
-		gzipPool.Put(w.gzipWriter)
+		GzipPool.Put(w.gzipWriter)
 	}
 }

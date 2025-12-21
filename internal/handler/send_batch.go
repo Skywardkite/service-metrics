@@ -12,6 +12,7 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/agent"
 )
 
+// SendBatch отправляет batch запрос в сервис метрик для их записи.
 func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL, key string) error {
 	metrics := storage.ConvertToBatch()
 

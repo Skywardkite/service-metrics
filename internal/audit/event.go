@@ -1,9 +1,13 @@
 package audit
 
+// AuditEvent - событие аудита, которое будем рассылать всем подписчикам.
 type AuditEvent struct {
-	TS        int64    `json:"ts"`         // unix timestamp события
-	Metrics   []string `json:"metrics"`    // наименование полученных метрик
-	IPAddress string   `json:"ip_address"` // IP адрес входящего запроса
+	// TS - unix timestamp события.
+	TS int64 `json:"ts"`
+	// Metrics - наименование полученных метрик.
+	Metrics []string `json:"metrics"`
+	// IPAddress - IP адрес входящего запроса.
+	IPAddress string `json:"ip_address"`
 }
 
 type AuditPublisher struct {
@@ -16,12 +20,12 @@ func NewAuditPublisher() *AuditPublisher {
 	}
 }
 
-// Добавляем нового наблюдателя
+// Subscribe добавляет нового наблюдателя.
 func (p *AuditPublisher) Subscribe(o Observer) {
 	p.observers = append(p.observers, o)
 }
 
-// Публикуем событие всем подписчикам
+// Publish рассылает событие всем подписчикам.
 func (p *AuditPublisher) Publish(event AuditEvent) {
 	for _, o := range p.observers {
 		o.Notify(event)

@@ -1,3 +1,4 @@
+// Package handler содержит HTTP-обработчики сервиса метрик и агента.
 package handler
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/service"
 )
 
+// Handler объединяет HTTP-обработчики сервиса.
 type Handler struct {
 	service *service.MetricService
 	store   repository.Storage
@@ -24,6 +26,7 @@ func NewHandler(s *service.MetricService, store repository.Storage, logger *zap.
 	return &Handler{service: s, store: store, logger: logger, audit: audit}
 }
 
+// UpdateHandler обновляет метрику в хранилище.
 func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
@@ -43,8 +46,9 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Отправка события
 	ip := clientIP(req)
+
+	// Отправляем аудит
 	h.audit.Publish(audit.AuditEvent{
 		TS:        time.Now().Unix(),
 		Metrics:   []string{metricName},

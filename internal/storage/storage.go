@@ -1,3 +1,4 @@
+// Package storage хранит в себе типы и методы для работы с метриками внутри сервиса.
 package storage
 
 import (
@@ -16,6 +17,8 @@ var (
 	ErrUnsupportedMetricType = errors.New("unsupported metric type")
 )
 
+// MemStorage - хранение метрик внутри сервиса.
+// Запись и чтение происходит синхронно для защиты от одновременной записи.
 type MemStorage struct {
 	mu      sync.RWMutex
 	Gauge   map[string]float64
@@ -75,8 +78,9 @@ func (s *MemStorage) GetMetrics(ctx context.Context) (map[string]float64, map[st
 	return gauges, counters, nil
 }
 
+// Ping - поддержан для общего интерфейса с бд для работой с метриками.
+// Но раз MemStorage хранит данные вне базы данных, будет возврат ошибки при попытке получить ping.
 func (s *MemStorage) Ping() error {
-	// Соединение с бд отсутствует
 	return ErrConnectToDB
 }
 

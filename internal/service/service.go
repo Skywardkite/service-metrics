@@ -1,3 +1,4 @@
+// Package service - вся бизнес логика сервиса, который получает, хранит и отдает метрики
 package service
 
 import (
@@ -23,6 +24,9 @@ func NewMetricService(cfg *server_config.Config, s repository.Storage) *MetricSe
 	}
 }
 
+// UpdateMetric обновляет метрики.
+// Обновление проходит с ретраем.
+// Если при запуске сервиса не выставляли StoreInternal, после каждого обновления происходит сохранение метрик в storage.
 func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error {
 	switch metricType {
 	case model.Gauge:
@@ -68,6 +72,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 	}
 }
 
+// GetMetric отдает значение метрики по ее типу и названию.
 func (s *MetricService) GetMetric(ctx context.Context, metricType, metricName string) (string, error) {
 	switch metricType {
 	case model.Gauge:
@@ -99,6 +104,7 @@ func (s *MetricService) GetMetric(ctx context.Context, metricType, metricName st
 	}
 }
 
+// GetAllMetrics отдает все метрики из store что знает.
 func (s *MetricService) GetAllMetrics(ctx context.Context) (map[string]float64, map[string]int64, error) {
 	var (
 		gauges   map[string]float64
@@ -117,6 +123,7 @@ func (s *MetricService) GetAllMetrics(ctx context.Context) (map[string]float64, 
 	return gauges, counters, nil
 }
 
+// SaveMetricsBatch сохраняет сразу несколько метрик вида model.Metrics.
 func (s *MetricService) SaveMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
 	err := withRetry(func() error {
 		return s.store.SetMetricsBatch(ctx, metrics)

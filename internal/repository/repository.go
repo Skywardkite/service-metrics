@@ -1,3 +1,4 @@
+// Package repository хранит в себе типы и методы для работы с метриками внутри базы данных.
 package repository
 
 import (
@@ -13,6 +14,8 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// Storage - интерфейс для работы с данными.
+// Поддержен в работе с бд и через файл внутри сервиса.
 type Storage interface {
 	SetCounter(ctx context.Context, name string, value int64) error
 	SetGauge(ctx context.Context, name string, value float64) error
