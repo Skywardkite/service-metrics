@@ -50,6 +50,12 @@ func (s *AgentMetrics) GetAgentMetrics() (map[string]float64, map[string]int64) 
 	return g, c
 }
 
+func (s *AgentMetrics) ClearAgentCounter() {
+	for k := range s.Counter {
+		s.Counter[k] = 0
+	}
+}
+
 func PollRuntimeMetrics(storage *AgentMetrics) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
@@ -84,12 +90,6 @@ func PollRuntimeMetrics(storage *AgentMetrics) {
 
 	storage.SetAgentGauge("RandomValue", rand.Float64()*1000)
 	storage.SetAgentCounter("PollCount")
-}
-
-func (s *AgentMetrics) ClearAgentCounter() {
-	for k := range s.Counter {
-		s.Counter[k] = 0
-	}
 }
 
 func PollSystemMetrics(storage *AgentMetrics) {
