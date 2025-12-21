@@ -1,0 +1,17 @@
+all: false
+dir: "{{.InterfaceDir}}/mocks"
+filename: "{{.InterfaceName}}_mock.go"
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: '{{.Mock}}{{.InterfaceName}}'
+pkgname: "mocks"
+recursive: false
+template: testify
+packages:
+  github.com/Skywardkite/service-metrics/internal/repository:
+    config:
+      all: true
+  github.com/Skywardkite/service-metrics/internal/storage:
+    config:
+      all: true

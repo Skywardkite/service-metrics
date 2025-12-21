@@ -24,6 +24,8 @@ type Storage interface {
 	GetMetrics(ctx context.Context) (map[string]float64, map[string]int64, error)
 	SetMetricsBatch(ctx context.Context, metrics []model.Metrics) error
 	Ping() error
+
+	SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error
 }
 
 type PostgresStorage struct {
@@ -70,5 +72,9 @@ func applyMigrations(dsn string) error {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
+	return nil
+}
+
+func (r *PostgresStorage) SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
 	return nil
 }

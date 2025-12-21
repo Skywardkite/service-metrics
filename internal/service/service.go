@@ -9,7 +9,6 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/repository"
-	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type MetricService struct {
@@ -43,7 +42,10 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 		}
 
 		if s.Cfg.StoreInternal == 0 {
-			storage.SaveMetrics(s.Cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
+			err = s.store.SaveMetrics(s.Cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -62,7 +64,10 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 		}
 
 		if s.Cfg.StoreInternal == 0 && s.Cfg.DatabaseDSN == "" {
-			storage.SaveMetrics(s.Cfg.FileStoragePath, nil, map[string]int64{metricName: value})
+			err = s.store.SaveMetrics(s.Cfg.FileStoragePath, nil, map[string]int64{metricName: value})
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

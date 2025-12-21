@@ -10,7 +10,7 @@ import (
 )
 
 // SaveMetrics записывает метрики в filePath.
-func SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
+func (s *MemStorage) SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
