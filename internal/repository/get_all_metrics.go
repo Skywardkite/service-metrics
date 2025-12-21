@@ -6,15 +6,20 @@ import (
 	"errors"
 )
 
+const (
+	queryAllGetGauge   = `SELECT * FROM gauges`
+	queryAllGetCounter = `SELECT * FROM counters`
+)
+
 func (r *PostgresStorage) GetMetrics(ctx context.Context) (map[string]float64, map[string]int64, error) {
 	var gaugesEntity []Gauge
 	var countersEntity []Counter
 
-	err := r.db.SelectContext(ctx, &gaugesEntity, `SELECT * FROM gauges`)
+	err := r.db.SelectContext(ctx, &gaugesEntity, queryAllGetGauge)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}
-	err = r.db.SelectContext(ctx, &countersEntity, `SELECT * FROM counters`)
+	err = r.db.SelectContext(ctx, &countersEntity, queryAllGetCounter)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}

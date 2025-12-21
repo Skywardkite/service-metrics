@@ -3,6 +3,7 @@ module github.com/Skywardkite/service-metrics
 go 1.24.3
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/hashicorp/go-retryablehttp v0.7.8

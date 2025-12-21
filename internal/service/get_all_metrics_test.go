@@ -23,7 +23,7 @@ func TestService_GetAllMetrics(t *testing.T) {
 		name        string
 		fields      fields
 		wantConters map[string]int64
-		wantGuages  map[string]float64
+		wantGauges  map[string]float64
 		wantErr     string
 	}{
 		{
@@ -31,12 +31,12 @@ func TestService_GetAllMetrics(t *testing.T) {
 			fields: fields{
 				store: func() repository.Storage {
 					repoMock := mocks.NewMockStorage(t)
-					repoMock.EXPECT().GetMetrics(mock.Anything).Return(map[string]float64{"name guage": 34.5}, map[string]int64{"name counter": 345}, nil)
+					repoMock.EXPECT().GetMetrics(mock.Anything).Return(map[string]float64{"name gauge": 34.5}, map[string]int64{"name counter": 345}, nil)
 					return repoMock
 				}(),
 			},
 			wantConters: map[string]int64{"name counter": 345},
-			wantGuages:  map[string]float64{"name guage": 34.5},
+			wantGauges:  map[string]float64{"name gauge": 34.5},
 			wantErr:     "",
 		},
 		{
@@ -57,9 +57,9 @@ func TestService_GetAllMetrics(t *testing.T) {
 				store: tt.fields.store,
 			}
 
-			gotGuages, gotCounter, err := s.GetAllMetrics(context.Background())
+			gotGauges, gotCounter, err := s.GetAllMetrics(context.Background())
 			assert.True(t, reflect.DeepEqual(gotCounter, tt.wantConters))
-			assert.True(t, reflect.DeepEqual(gotGuages, tt.wantGuages))
+			assert.True(t, reflect.DeepEqual(gotGauges, tt.wantGauges))
 			if tt.wantErr != "" {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)
