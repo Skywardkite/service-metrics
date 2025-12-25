@@ -1,3 +1,25 @@
+До:
+      flat  flat%   sum%        cum   cum%
+    2565kB 49.67% 49.67%     2565kB 49.67%  runtime.allocm
+ 1184.27kB 22.93% 72.61%  1184.27kB 22.93%  runtime/pprof.StartCPUProfile
+  902.59kB 17.48% 90.08%   902.59kB 17.48%  compress/flate.NewWriter (inline)
+  512.05kB  9.92%   100%   512.05kB  9.92%  time.NewTicker
+         0     0%   100%   902.59kB 17.48%  compress/gzip.(*Writer).Write
+
+Проблема, которую правила:
+    2565kB 49.67% 49.67%     2565kB 49.67%  runtime.allocm
+         0     0%   100%   902.59kB 17.48%  compress/gzip.(*Writer).Write
+
+В func (w *gzipResponseWriter) Write -> WriteHeader я создавала gzip.NewWriter(w.ResponseWriter) 
+получается каждый раз аллоцировали память для создания еще одного gzip.Writer при вызове Write, что избыточно
+
+Что делала:
+добавила gzipPool = sync.Pool. Тпереь не будет происходить постоянное создание нового writer, будем использовать из пулла. 
+Если в пулле нет writer, то он будет создан. Это меньше аллокаций чем раньше, поэтом при сравнении видим 
+    -513kB  9.93% 30.44%     -513kB  9.93%  runtime.allocm
+         0     0% 20.52%  -902.59kB 17.48%  compress/gzip.(*Writer).Write
+
+
 File: server
 Type: inuse_space
 Time: 2025-12-16 23:11:29 MSK

@@ -22,12 +22,12 @@ func TestGzipMiddleware(t *testing.T) {
 	})
 
 	tests := []struct {
-		name          string
-		body          []byte
-		gzipEncoding  bool
-		wantStatus    int
-		wantRespBody  string
-		corruptGzip   bool
+		name         string
+		body         []byte
+		gzipEncoding bool
+		wantStatus   int
+		wantRespBody string
+		corruptGzip  bool
 	}{
 		{
 			name:         "no gzip",
