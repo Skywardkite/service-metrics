@@ -6,7 +6,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
+// GetMetric - вернет значение по типу метрики и ее названию.
+func (h *Handler) GetMetric(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
 	metricType := chi.URLParam(req, "metricType")
@@ -24,8 +25,8 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.Header().Set("Content-Type", "application/json")
-	if h.service.Cfg.Key != "" {
-		hash := SignBody([]byte(value), h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody([]byte(value), h.cfg.Key)
 		res.Header().Set("HashSHA256", hash)
 	}
 	res.WriteHeader(http.StatusOK)

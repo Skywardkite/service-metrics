@@ -20,6 +20,10 @@ func NewAuditPublisher() *AuditPublisher {
 	}
 }
 
+type AuditPublisherInterface interface {
+	Publish(event AuditEvent)
+}
+
 // Subscribe добавляет нового наблюдателя.
 func (p *AuditPublisher) Subscribe(o Observer) {
 	p.observers = append(p.observers, o)

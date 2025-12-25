@@ -9,6 +9,7 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// UpdateMetricsBatchJSONHandler - обновляет значения батчем.
 func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -55,8 +56,8 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 
 	responseBody := []byte("{}")
-	if h.service.Cfg.Key != "" {
-		hash := SignBody(responseBody, h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody(responseBody, h.cfg.Key)
 		w.Header().Set("HashSHA256", hash)
 	}
 

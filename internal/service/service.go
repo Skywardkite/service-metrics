@@ -23,6 +23,13 @@ func NewMetricService(cfg *server_config.Config, s repository.Storage) *MetricSe
 	}
 }
 
+type MetricServiceInterface interface {
+	UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error
+	GetMetric(ctx context.Context, metricType, metricName string) (string, error)
+	GetAllMetrics(ctx context.Context) (map[string]float64, map[string]int64, error)
+	SaveMetricsBatch(ctx context.Context, metrics []model.Metrics) error
+}
+
 // UpdateMetric обновляет метрики.
 // Обновление проходит с ретраем.
 // Если при запуске сервиса не выставляли StoreInternal, после каждого обновления происходит сохранение метрик в storage.

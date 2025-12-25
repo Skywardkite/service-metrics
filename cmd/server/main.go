@@ -66,7 +66,7 @@ func main() {
 	}
 
 	metricService := service.NewMetricService(&cfg, store)
-	h := handler.NewHandler(metricService, store, logger.Sugar, publisher)
+	h := handler.NewHandler(metricService, &cfg, store, logger.Sugar, publisher)
 
 	r := chi.NewRouter()
 
@@ -83,7 +83,7 @@ func main() {
 
 	// Регистрируем обработчики
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
-	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
+	r.Get("/value/{metricType}/{metricName}", h.GetMetric)
 	r.Get("/", h.GetAllMetricsHandler)
 	r.Get("/ping", h.PingHandler)
 

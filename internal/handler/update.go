@@ -10,20 +10,28 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Skywardkite/service-metrics/internal/audit"
+	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
 )
 
 // Handler объединяет HTTP-обработчики сервиса.
 type Handler struct {
-	service *service.MetricService
+	service service.MetricServiceInterface
+	cfg     *server_config.Config
 	store   repository.Storage
 	logger  *zap.SugaredLogger
-	audit   *audit.AuditPublisher
+	audit   audit.AuditPublisherInterface
 }
 
-func NewHandler(s *service.MetricService, store repository.Storage, logger *zap.SugaredLogger, audit *audit.AuditPublisher) *Handler {
-	return &Handler{service: s, store: store, logger: logger, audit: audit}
+func NewHandler(s service.MetricServiceInterface, cfg *server_config.Config, store repository.Storage, logger *zap.SugaredLogger, audit audit.AuditPublisherInterface) *Handler {
+	return &Handler{
+		service: s,
+		cfg:     cfg,
+		store:   store,
+		logger:  logger,
+		audit:   audit,
+	}
 }
 
 // UpdateHandler обновляет метрику в хранилище.
@@ -62,8 +70,8 @@ func (h *Handler) UpdateHandler(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Length", fmt.Sprintf("%d", len(responseBody)))
 	res.Header().Set("Content-Type", "application/json")
 
-	if h.service.Cfg.Key != "" {
-		hash := SignBody([]byte(responseBody), h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody([]byte(responseBody), h.cfg.Key)
 		res.Header().Set("HashSHA256", hash)
 	}
 

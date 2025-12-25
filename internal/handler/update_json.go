@@ -11,6 +11,7 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// UpdateJSONHandler - обновляет одну метрику. Принимает значения в json.
 func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
@@ -74,8 +75,8 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 	}
 
 	res.Header().Set("Content-Type", "application/json")
-	if h.service.Cfg.Key != "" {
-		hash := SignBody(r, h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody(r, h.cfg.Key)
 		res.Header().Set("HashSHA256", hash)
 	}
 
