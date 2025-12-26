@@ -5,11 +5,14 @@ import (
 	"net/http"
 )
 
+// MetricsPageData собирает все метрики, чтобы передать их в шаблон metrics.html.
 type MetricsPageData struct {
 	Gauges   map[string]float64
 	Counters map[string]int64
 }
 
+// GetAllMetricsHandler отдаем все метрики.
+// Подставляем все значения в шаблон metrics.html.
 func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
@@ -41,8 +44,8 @@ func (h *Handler) GetAllMetricsHandler(res http.ResponseWriter, req *http.Reques
 	}
 
 	responseBody := []byte("OK")
-	if h.service.Cfg.Key != "" {
-		hash := SignBody(responseBody, h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody(responseBody, h.cfg.Key)
 		res.Header().Set("HashSHA256", hash)
 	}
 

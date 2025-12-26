@@ -1,16 +1,18 @@
-package main
+package server
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
+	"gotest.tools/assert"
+
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
-	"github.com/go-chi/chi/v5"
-	"gotest.tools/assert"
 )
 
 func TestMain(t *testing.T) {
@@ -19,7 +21,8 @@ func TestMain(t *testing.T) {
 		StoreInternal: 30,
 	}
 	metricService := service.NewMetricService(&cfg, store)
-	h := handler.NewHandler(metricService, nil, nil)
+	auditPublisher := audit.NewAuditPublisher()
+	h := handler.NewHandler(metricService, &cfg, nil, auditPublisher)
 
 	r := chi.NewRouter()
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)

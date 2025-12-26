@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bytes"
@@ -9,7 +9,9 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/handler"
 )
 
-func authMiddleware(key string, next http.Handler) http.Handler {
+// authMiddleware проверяет подпись запроса по секретному ключу.
+// Пропускает проверку, если key == "" или заголовок пустой.
+func AuthMiddleware(key string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if key == "" || r.Header.Get("HashSHA256") == "" {
 			next.ServeHTTP(w, r)

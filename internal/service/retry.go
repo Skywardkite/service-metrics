@@ -9,6 +9,10 @@ import (
 	"github.com/jackc/pgerrcode"
 )
 
+// withRetry запускает повторение попыток успешно выполнить передаваемую функцию.
+// Выполним операцию сразу, чреез 1, 3 и 5 секунд. Итого 4 раза.
+// В случае неудачи или другой ошибки - вернем ее.
+// При успехе - возврат nil.
 func withRetry(fn func() error) error {
 	delays := []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 

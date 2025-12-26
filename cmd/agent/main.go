@@ -1,4 +1,5 @@
-package main
+// Package agent — HTTP-агент для сбора и отправки метрик.
+package agent
 
 import (
 	"log"

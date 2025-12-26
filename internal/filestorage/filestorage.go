@@ -49,7 +49,7 @@ func (c *StorageConfig) Run(ctx context.Context) {
 					return
 				}
 
-				err = storage.SaveMetrics(c.cfg.FileStoragePath, gauges, counters)
+				err = c.store.SaveMetrics(c.cfg.FileStoragePath, gauges, counters)
 				if err != nil {
 					logger.Sugar.Errorw("Failed to save metrics", "error", err)
 					return

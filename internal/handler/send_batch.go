@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Skywardkite/service-metrics/internal/agent"
 	"github.com/hashicorp/go-retryablehttp"
+
+	"github.com/Skywardkite/service-metrics/internal/agent"
 )
 
+// SendBatch отправляет batch запрос в сервис метрик для их записи.
 func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL, key string) error {
 	metrics := storage.ConvertToBatch()
 

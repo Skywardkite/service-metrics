@@ -9,7 +9,8 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
-func SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
+// SaveMetrics записывает метрики в filePath.
+func (s *MemStorage) SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
@@ -58,7 +59,6 @@ func SaveMetrics(filePath string, gauges map[string]float64, counters map[string
 		return fmt.Errorf("flush error: %w", err)
 	}
 
-	// 5. Атомарная замена файла
 	if err := os.Rename(filePath, filePath); err != nil {
 		os.Remove(filePath)
 		return fmt.Errorf("rename error: %w", err)

@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// UpdateJSONHandler - обновляет одну метрику. Принимает значения в json.
 func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
@@ -56,6 +59,14 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
+	// Отправка события
+	ip := clientIP(req)
+	h.audit.Publish(audit.AuditEvent{
+		TS:        time.Now().Unix(),
+		Metrics:   []string{metric.ID},
+		IPAddress: ip,
+	})
+
 	r, err := json.Marshal(metric)
 	if err != nil {
 		h.logger.Errorf("error marshalling response", "err", err)
@@ -64,8 +75,8 @@ func (h *Handler) UpdateJSONHandler(res http.ResponseWriter, req *http.Request) 
 	}
 
 	res.Header().Set("Content-Type", "application/json")
-	if h.service.Cfg.Key != "" {
-		hash := SignBody(r, h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody(r, h.cfg.Key)
 		res.Header().Set("HashSHA256", hash)
 	}
 

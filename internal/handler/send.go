@@ -13,6 +13,7 @@ import (
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// SendMetrics отправляет метрики на сервер.
 func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url, key string) {
 	gauges, counters := storage.GetAgentMetrics()
 
@@ -32,7 +33,7 @@ func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url,
 		})
 	}
 
-	//После отправки метрик обнуляем счетчик сбора
+	// После отправки метрик обнуляем счетчик сбора.
 	storage.ClearAgentCounter()
 }
 

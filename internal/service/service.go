@@ -1,3 +1,4 @@
+// Package service - вся бизнес логика сервиса, который получает, хранит и отдает метрики
 package service
 
 import (
@@ -8,7 +9,6 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/Skywardkite/service-metrics/internal/repository"
-	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
 type MetricService struct {
@@ -17,9 +17,23 @@ type MetricService struct {
 }
 
 func NewMetricService(cfg *server_config.Config, s repository.Storage) *MetricService {
-	return &MetricService{Cfg: cfg, store: s}
+	return &MetricService{
+		Cfg:   cfg,
+		store: s,
+	}
 }
 
+type MetricServiceInterface interface {
+	UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error
+	GetMetric(ctx context.Context, metricType, metricName string) (string, error)
+	GetAllMetrics(ctx context.Context) (map[string]float64, map[string]int64, error)
+	SaveMetricsBatch(ctx context.Context, metrics []model.Metrics) error
+	Ping(ctx context.Context) error
+}
+
+// UpdateMetric обновляет метрики.
+// Обновление проходит с ретраем.
+// Если при запуске сервиса не выставляли StoreInternal, после каждого обновления происходит сохранение метрик в storage.
 func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName, metricValue string) error {
 	switch metricType {
 	case model.Gauge:
@@ -36,8 +50,12 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 		}
 
 		if s.Cfg.StoreInternal == 0 {
-			storage.SaveMetrics(s.Cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
+			err = s.store.SaveMetrics(s.Cfg.FileStoragePath, map[string]float64{metricName: value}, nil)
+			if err != nil {
+				return err
+			}
 		}
+
 		return nil
 
 	case model.Counter:
@@ -54,8 +72,12 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 		}
 
 		if s.Cfg.StoreInternal == 0 && s.Cfg.DatabaseDSN == "" {
-			storage.SaveMetrics(s.Cfg.FileStoragePath, nil, map[string]int64{metricName: value})
+			err = s.store.SaveMetrics(s.Cfg.FileStoragePath, nil, map[string]int64{metricName: value})
+			if err != nil {
+				return err
+			}
 		}
+
 		return nil
 
 	default:
@@ -63,6 +85,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, metricType, metricName
 	}
 }
 
+// GetMetric отдает значение метрики по ее типу и названию.
 func (s *MetricService) GetMetric(ctx context.Context, metricType, metricName string) (string, error) {
 	switch metricType {
 	case model.Gauge:
@@ -94,6 +117,7 @@ func (s *MetricService) GetMetric(ctx context.Context, metricType, metricName st
 	}
 }
 
+// GetAllMetrics отдает все метрики из store что знает.
 func (s *MetricService) GetAllMetrics(ctx context.Context) (map[string]float64, map[string]int64, error) {
 	var (
 		gauges   map[string]float64
@@ -112,12 +136,25 @@ func (s *MetricService) GetAllMetrics(ctx context.Context) (map[string]float64, 
 	return gauges, counters, nil
 }
 
+// SaveMetricsBatch сохраняет сразу несколько метрик вида model.Metrics.
 func (s *MetricService) SaveMetricsBatch(ctx context.Context, metrics []model.Metrics) error {
 	err := withRetry(func() error {
 		return s.store.SetMetricsBatch(ctx, metrics)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to set metrics batch: %w", err)
+	}
+
+	return nil
+}
+
+func (s *MetricService) Ping(ctx context.Context) error {
+	if s.store == nil {
+		return fmt.Errorf("storage is not initialized")
+	}
+
+	if err := s.store.Ping(); err != nil {
+		return err
 	}
 
 	return nil

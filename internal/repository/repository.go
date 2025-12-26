@@ -1,17 +1,21 @@
+// Package repository хранит в себе типы и методы для работы с метриками внутри базы данных.
 package repository
 
 import (
 	"context"
 	"fmt"
 
-	model "github.com/Skywardkite/service-metrics/internal/model"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+
+	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// Storage - интерфейс для работы с данными.
+// Поддержен в работе с бд и через файл внутри сервиса.
 type Storage interface {
 	SetCounter(ctx context.Context, name string, value int64) error
 	SetGauge(ctx context.Context, name string, value float64) error
@@ -20,6 +24,8 @@ type Storage interface {
 	GetMetrics(ctx context.Context) (map[string]float64, map[string]int64, error)
 	SetMetricsBatch(ctx context.Context, metrics []model.Metrics) error
 	Ping() error
+
+	SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error
 }
 
 type PostgresStorage struct {
@@ -66,5 +72,9 @@ func applyMigrations(dsn string) error {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
+	return nil
+}
+
+func (r *PostgresStorage) SaveMetrics(filePath string, gauges map[string]float64, counters map[string]int64) error {
 	return nil
 }

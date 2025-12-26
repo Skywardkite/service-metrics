@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bytes"
@@ -6,9 +6,27 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
-func gzipMiddleware(next http.Handler) http.Handler {
+// GzipPool пул для повторного использования gzip.Writer.
+var GzipPool = sync.Pool{
+	New: func() any {
+		w, _ := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
+		return w
+	},
+}
+
+// gzipResponseWriter оборачивает http.ResponseWriter и добавляет поддержку gzip сжатия для ответов.
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	request     *http.Request
+	gzipWriter  *gzip.Writer
+	wroteHeader bool
+}
+
+// GzipMiddleware функция-обертка для добавления middleware сжатия ответов.
+func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			gz, err := gzip.NewReader(r.Body)
@@ -38,13 +56,8 @@ func gzipMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-type gzipResponseWriter struct {
-	http.ResponseWriter
-	request     *http.Request
-	gzipWriter  *gzip.Writer
-	wroteHeader bool
-}
-
+// WriteHeader реализует интерфейс http.ResponseWriter.
+// Записывает статус ответа и устанавливает заголовки для сжатия, если это необходимо.
 func (w *gzipResponseWriter) WriteHeader(code int) {
 	if w.wroteHeader {
 		return
@@ -57,18 +70,16 @@ func (w *gzipResponseWriter) WriteHeader(code int) {
 
 	if acceptsGzip && (contentType == "text/html" || contentType == "application/json") {
 		w.Header().Set("Content-Encoding", "gzip")
-		w.gzipWriter = gzip.NewWriter(w.ResponseWriter)
+
+		gz := GzipPool.Get().(*gzip.Writer)
+		gz.Reset(w.ResponseWriter)
+		w.gzipWriter = gz
 	}
 
 	w.ResponseWriter.WriteHeader(code)
 }
 
 func (w *gzipResponseWriter) Write(b []byte) (int, error) {
-	// Если Content-Type еще не установлен, пытаемся определить
-	if w.Header().Get("Content-Type") == "" && len(b) > 0 {
-		w.Header().Set("Content-Type", http.DetectContentType(b))
-	}
-
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -82,5 +93,6 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 func (w *gzipResponseWriter) Close() {
 	if w.gzipWriter != nil {
 		w.gzipWriter.Close()
+		GzipPool.Put(w.gzipWriter)
 	}
 }

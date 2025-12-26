@@ -1,10 +1,14 @@
-package main
+// Package server — HTTP-сервер для хранения и отображения метрик.
+package server
 
 import (
 	"context"
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
@@ -12,7 +16,6 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
 	"github.com/Skywardkite/service-metrics/internal/storage"
-	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -50,26 +53,44 @@ func main() {
 		fileStorage.Run(ctx)
 	}
 
+	publisher := audit.NewAuditPublisher()
+
+	if cfg.AuditFile != "" {
+		fileObs := &audit.FileObserver{FilePath: cfg.AuditFile}
+		publisher.Subscribe(fileObs)
+	}
+
+	if cfg.AuditURL != "" {
+		httpObs := &audit.HttpObserver{URL: cfg.AuditURL}
+		publisher.Subscribe(httpObs)
+	}
+
 	metricService := service.NewMetricService(&cfg, store)
-	h := handler.NewHandler(metricService, store, logger.Sugar)
+	h := handler.NewHandler(metricService, &cfg, logger.Sugar, publisher)
 
 	r := chi.NewRouter()
+
 	// Применяем middleware ко всем роутам
 	r.Use(logger.WithLogging)
 	r.Use(func(next http.Handler) http.Handler {
-		return authMiddleware(cfg.Key, next)
+		return AuthMiddleware(cfg.Key, next)
 	})
-	r.Use(gzipMiddleware)
+	r.Use(GzipMiddleware)
+
+	r.Route("/debug/pprof", func(pp chi.Router) {
+		MountPprof(pp)
+	})
 
 	// Регистрируем обработчики
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)
-	r.Get("/value/{metricType}/{metricName}", h.GetHandler)
+	r.Get("/value/{metricType}/{metricName}", h.GetMetric)
 	r.Get("/", h.GetAllMetricsHandler)
 	r.Get("/ping", h.PingHandler)
 
 	r.Post("/update/", h.UpdateJSONHandler)
 	r.Post("/updates/", h.UpdateMetricsBatchJSONHandler)
 	r.Post("/value/", h.GetMetricJSONHandler)
+
 	if err := http.ListenAndServe(cfg.FlagRunAddr, r); err != nil {
 		logger.Sugar.Fatalw("Error to listen server", err.Error(), "event", "start server")
 	}

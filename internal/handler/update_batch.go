@@ -3,10 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/Skywardkite/service-metrics/internal/audit"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
+// UpdateMetricsBatchJSONHandler - обновляет значения батчем.
 func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -36,11 +39,25 @@ func (h *Handler) UpdateMetricsBatchJSONHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	// Отправка события
+	ip := clientIP(r)
+
+	var metricNames []string
+	for _, m := range metrics {
+		metricNames = append(metricNames, m.ID)
+	}
+
+	h.audit.Publish(audit.AuditEvent{
+		TS:        time.Now().Unix(),
+		Metrics:   metricNames,
+		IPAddress: ip,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 
 	responseBody := []byte("{}")
-	if h.service.Cfg.Key != "" {
-		hash := SignBody(responseBody, h.service.Cfg.Key)
+	if h.cfg.Key != "" {
+		hash := SignBody(responseBody, h.cfg.Key)
 		w.Header().Set("HashSHA256", hash)
 	}
 
