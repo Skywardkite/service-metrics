@@ -6,19 +6,36 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	auditmocks "github.com/Skywardkite/service-metrics/internal/audit/mocks"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
-	mocks "github.com/Skywardkite/service-metrics/internal/handler/example_mocks"
+	servicemocks "github.com/Skywardkite/service-metrics/internal/service/mocks"
+	"github.com/go-chi/chi/v5"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )
 
 func ExampleHandler_GetMetric() {
-	h := handler.NewHandler(&mocks.MockService{}, &server_config.Config{}, &mocks.MockStorage{}, &zap.SugaredLogger{}, &mocks.MockAudit{})
+	ctrl := gomock.NewController(nil)
+	defer ctrl.Finish()
+
+	serviceMock := servicemocks.NewMockMetricServiceInterface(ctrl)
+	serviceMock.EXPECT().GetMetric(gomock.Any(), "gauge", "requests").Return("42.0", nil)
+
+	h := handler.NewHandler(
+		serviceMock,
+		&server_config.Config{},
+		&zap.SugaredLogger{},
+		&auditmocks.MockAuditPublisherInterface{},
+	)
+
+	r := chi.NewRouter()
+	r.Get("/value/{metricType}/{metricName}", h.GetMetric)
 
 	req := httptest.NewRequest(http.MethodGet, "/value/gauge/requests", nil)
 	w := httptest.NewRecorder()
 
-	h.GetMetric(w, req)
+	r.ServeHTTP(w, req)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)

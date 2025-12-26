@@ -5,13 +5,9 @@ import (
 )
 
 func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
-	if h.store == nil {
-		h.logger.Errorw("Failed to chek connection store")
-		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	ctx := req.Context()
 
-	if err := h.store.Ping(); err != nil {
+	if err := h.service.Ping(ctx); err != nil {
 		h.logger.Errorw("Failed to ping store", "error", err)
 		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return

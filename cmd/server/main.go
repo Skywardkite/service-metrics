@@ -66,7 +66,7 @@ func main() {
 	}
 
 	metricService := service.NewMetricService(&cfg, store)
-	h := handler.NewHandler(metricService, &cfg, store, logger.Sugar, publisher)
+	h := handler.NewHandler(metricService, &cfg, logger.Sugar, publisher)
 
 	r := chi.NewRouter()
 

@@ -26,7 +26,7 @@ func (f *FileObserver) Notify(event AuditEvent) {
 		return
 	}
 	defer file.Close()
-	
+
 	f.mu.Lock()
 	defer f.mu.Unlock()
 

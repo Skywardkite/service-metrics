@@ -28,6 +28,7 @@ type MetricServiceInterface interface {
 	GetMetric(ctx context.Context, metricType, metricName string) (string, error)
 	GetAllMetrics(ctx context.Context) (map[string]float64, map[string]int64, error)
 	SaveMetricsBatch(ctx context.Context, metrics []model.Metrics) error
+	Ping(ctx context.Context) error
 }
 
 // UpdateMetric обновляет метрики.
@@ -142,6 +143,18 @@ func (s *MetricService) SaveMetricsBatch(ctx context.Context, metrics []model.Me
 	})
 	if err != nil {
 		return fmt.Errorf("failed to set metrics batch: %w", err)
+	}
+
+	return nil
+}
+
+func (s *MetricService) Ping(ctx context.Context) error {
+	if s.store == nil {
+		return fmt.Errorf("storage is not initialized")
+	}
+
+	if err := s.store.Ping(); err != nil {
+		return err
 	}
 
 	return nil

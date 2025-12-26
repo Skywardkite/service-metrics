@@ -11,7 +11,6 @@ import (
 
 	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
-	"github.com/Skywardkite/service-metrics/internal/repository"
 	"github.com/Skywardkite/service-metrics/internal/service"
 )
 
@@ -19,16 +18,14 @@ import (
 type Handler struct {
 	service service.MetricServiceInterface
 	cfg     *server_config.Config
-	store   repository.Storage
 	logger  *zap.SugaredLogger
 	audit   audit.AuditPublisherInterface
 }
 
-func NewHandler(s service.MetricServiceInterface, cfg *server_config.Config, store repository.Storage, logger *zap.SugaredLogger, audit audit.AuditPublisherInterface) *Handler {
+func NewHandler(s service.MetricServiceInterface, cfg *server_config.Config, logger *zap.SugaredLogger, audit audit.AuditPublisherInterface) *Handler {
 	return &Handler{
 		service: s,
 		cfg:     cfg,
-		store:   store,
 		logger:  logger,
 		audit:   audit,
 	}

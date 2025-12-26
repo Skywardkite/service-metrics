@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/Skywardkite/service-metrics/internal/model"
+	models "github.com/Skywardkite/service-metrics/internal/model"
 	mock "github.com/stretchr/testify/mock"
 )
 

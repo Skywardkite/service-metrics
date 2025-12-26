@@ -22,7 +22,7 @@ func TestMain(t *testing.T) {
 	}
 	metricService := service.NewMetricService(&cfg, store)
 	auditPublisher := audit.NewAuditPublisher()
-	h := handler.NewHandler(metricService, &cfg, nil, nil, auditPublisher)
+	h := handler.NewHandler(metricService, &cfg, nil, auditPublisher)
 
 	r := chi.NewRouter()
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.UpdateHandler)

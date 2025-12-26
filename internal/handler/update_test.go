@@ -104,7 +104,7 @@ func TestHandler_UpdateHandler(t *testing.T) {
 			logger := zap.NewNop().Sugar()
 			auditPublisher := audit.NewAuditPublisher()
 			cfg := &server_config.Config{}
-			h := NewHandler(metricService, cfg, nil, logger, auditPublisher)
+			h := NewHandler(metricService, cfg, logger, auditPublisher)
 
 			req := httptest.NewRequest(tt.args.method, "/", nil)
 			res := httptest.NewRecorder()

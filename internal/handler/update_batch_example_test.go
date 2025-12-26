@@ -7,24 +7,38 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	auditmocks "github.com/Skywardkite/service-metrics/internal/audit/mocks"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
-	mocks "github.com/Skywardkite/service-metrics/internal/handler/example_mocks"
 	model "github.com/Skywardkite/service-metrics/internal/model"
+	servicemocks "github.com/Skywardkite/service-metrics/internal/service/mocks"
 	pointers "github.com/Skywardkite/service-metrics/internal/utils"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )
 
 func ExampleHandler_UpdateMetricsBatchJSONHandler() {
-	h := handler.NewHandler(&mocks.MockService{}, &server_config.Config{}, &mocks.MockStorage{}, &zap.SugaredLogger{}, &mocks.MockAudit{})
-
 	// Создаём батч из двух метрик: Gauge и Counter
-	gv := pointers.To(float64(42.0))
-	cd := int64(7)
 	batch := []model.Metrics{
-		{ID: "requests", MType: model.Gauge, Value: gv},
-		{ID: "tasks_processed", MType: model.Counter, Delta: &cd},
+		{ID: "requests", MType: model.Gauge, Value: pointers.To(float64(42.0))},
+		{ID: "tasks_processed", MType: model.Counter, Delta: pointers.To(int64(7))},
 	}
+
+	ctrl := gomock.NewController(nil)
+	defer ctrl.Finish()
+
+	serviceMock := servicemocks.NewMockMetricServiceInterface(ctrl)
+	serviceMock.EXPECT().SaveMetricsBatch(gomock.Any(), batch).Return(nil)
+
+	auditMock := auditmocks.NewMockAuditPublisherInterface(ctrl)
+	auditMock.EXPECT().Publish(gomock.Any())
+
+	h := handler.NewHandler(
+		serviceMock,
+		&server_config.Config{},
+		&zap.SugaredLogger{},
+		auditMock,
+	)
 
 	data, _ := json.Marshal(batch)
 	req := httptest.NewRequest(http.MethodPost, "/update-batch-json", bytes.NewReader(data))

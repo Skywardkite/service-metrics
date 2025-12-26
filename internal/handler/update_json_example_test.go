@@ -8,16 +8,32 @@ import (
 	"net/http/httptest"
 	"strconv"
 
+	auditmocks "github.com/Skywardkite/service-metrics/internal/audit/mocks"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/handler"
-	mocks "github.com/Skywardkite/service-metrics/internal/handler/example_mocks"
 	model "github.com/Skywardkite/service-metrics/internal/model"
+	servicemocks "github.com/Skywardkite/service-metrics/internal/service/mocks"
 	pointers "github.com/Skywardkite/service-metrics/internal/utils"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )
 
 func ExampleHandler_UpdateJSONHandler() {
-	h := handler.NewHandler(&mocks.MockService{}, &server_config.Config{}, &mocks.MockStorage{}, &zap.SugaredLogger{}, &mocks.MockAudit{})
+	ctrl := gomock.NewController(nil)
+	defer ctrl.Finish()
+
+	serviceMock := servicemocks.NewMockMetricServiceInterface(ctrl)
+	serviceMock.EXPECT().UpdateMetric(gomock.Any(), "gauge", "requests", "42").Return(nil)
+
+	auditMock := auditmocks.NewMockAuditPublisherInterface(ctrl)
+	auditMock.EXPECT().Publish(gomock.Any())
+
+	h := handler.NewHandler(
+		serviceMock,
+		&server_config.Config{},
+		&zap.SugaredLogger{},
+		auditMock,
+	)
 
 	m := model.Metrics{
 		ID:    "requests",
