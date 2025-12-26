@@ -20,15 +20,15 @@ func (f *FileObserver) Notify(event AuditEvent) {
 		return
 	}
 
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
 	file, err := os.OpenFile(f.FilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		logger.Sugar.Errorw("Can't open audit file", "error", err)
 		return
 	}
 	defer file.Close()
+	
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
 	if _, err := file.Write(append(data, '\n')); err != nil {
 		logger.Sugar.Errorw("Can't write audit event", "error", err)
