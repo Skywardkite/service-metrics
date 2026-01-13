@@ -1,5 +1,5 @@
 // Package server — HTTP-сервер для хранения и отображения метрик.
-package server
+package main
 
 import (
 	"context"
