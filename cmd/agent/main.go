@@ -8,7 +8,15 @@ import (
 	agentConfig "github.com/Skywardkite/service-metrics/internal/config/agent_config"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	app.PrintBuildInfo(buildVersion, buildDate, buildCommit)
+
 	cfg, err := agentConfig.ParseFlags()
 	if err != nil {
 		log.Fatal("Error to parse flags:", err)
