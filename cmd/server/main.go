@@ -1,5 +1,5 @@
 // Package server — HTTP-сервер для хранения и отображения метрик.
-package server
+package main
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/Skywardkite/service-metrics/internal/app"
 	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
@@ -18,7 +19,15 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/storage"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	app.PrintBuildInfo(buildVersion, buildDate, buildCommit)
+
 	if err := logger.Initialize(); err != nil {
 		log.Fatal("Error to initialize logger:", err)
 	}

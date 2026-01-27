@@ -1,10 +1,13 @@
 package models
 
+//go:generate go run ../../cmd/reset
+
 const (
 	Counter = "counter"
 	Gauge   = "gauge"
 )
 
+// generate:reset
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
