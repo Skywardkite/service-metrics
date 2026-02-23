@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/rsa"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +15,6 @@ import (
 )
 
 func TestGzipMiddleware(t *testing.T) {
-	// хэндлер, который просто читает тело и возвращает длину
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		assert.NilError(t, err)
@@ -25,9 +25,10 @@ func TestGzipMiddleware(t *testing.T) {
 		name         string
 		body         []byte
 		gzipEncoding bool
+		corruptGzip  bool
 		wantStatus   int
 		wantRespBody string
-		corruptGzip  bool
+		privKey      *rsa.PrivateKey
 	}{
 		{
 			name:         "no gzip",
@@ -35,6 +36,7 @@ func TestGzipMiddleware(t *testing.T) {
 			gzipEncoding: false,
 			wantStatus:   http.StatusOK,
 			wantRespBody: "11",
+			privKey:      nil,
 		},
 		{
 			name:         "gzip encoded",
@@ -42,6 +44,7 @@ func TestGzipMiddleware(t *testing.T) {
 			gzipEncoding: true,
 			wantStatus:   http.StatusOK,
 			wantRespBody: "10",
+			privKey:      nil,
 		},
 		{
 			name:         "corrupt gzip",
@@ -50,6 +53,7 @@ func TestGzipMiddleware(t *testing.T) {
 			corruptGzip:  true,
 			wantStatus:   http.StatusInternalServerError,
 			wantRespBody: "gzip: invalid header",
+			privKey:      nil,
 		},
 	}
 
@@ -60,7 +64,6 @@ func TestGzipMiddleware(t *testing.T) {
 			if tt.gzipEncoding {
 				var buf bytes.Buffer
 				if tt.corruptGzip {
-					// пишем некорректный gzip
 					buf.Write([]byte("not a gzip"))
 				} else {
 					gw := gzip.NewWriter(&buf)
@@ -79,7 +82,8 @@ func TestGzipMiddleware(t *testing.T) {
 			}
 
 			w := httptest.NewRecorder()
-			GzipMiddleware(nextHandler).ServeHTTP(w, req)
+
+			GzipMiddleware(tt.privKey)(nextHandler).ServeHTTP(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()

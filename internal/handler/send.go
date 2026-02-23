@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,11 +11,12 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
+	"github.com/Skywardkite/service-metrics/internal/crypto"
 	model "github.com/Skywardkite/service-metrics/internal/model"
 )
 
 // SendMetrics отправляет метрики на сервер.
-func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url, key string) {
+func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url, key string, pubKey *rsa.PublicKey) {
 	gauges, counters := storage.GetAgentMetrics()
 
 	for name, value := range gauges {
@@ -22,7 +24,7 @@ func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url,
 			ID:    name,
 			MType: model.Gauge,
 			Value: &value,
-		})
+		}, pubKey)
 	}
 
 	for name, delta := range counters {
@@ -30,14 +32,14 @@ func SendMetrics(client *retryablehttp.Client, storage *agent.AgentMetrics, url,
 			ID:    name,
 			MType: model.Counter,
 			Delta: &delta,
-		})
+		}, pubKey)
 	}
 
 	// После отправки метрик обнуляем счетчик сбора.
 	storage.ClearAgentCounter()
 }
 
-func sendPlainPost(client *retryablehttp.Client, url, key string, metric model.Metrics) error {
+func sendPlainPost(client *retryablehttp.Client, url, key string, metric model.Metrics, pubKey *rsa.PublicKey) error {
 	jsonData, err := json.Marshal(metric)
 	if err != nil {
 		return fmt.Errorf("failed to marshal metrics: %w", err)
@@ -53,7 +55,18 @@ func sendPlainPost(client *retryablehttp.Client, url, key string, metric model.M
 		return fmt.Errorf("failed to close gzip writer: %w", err)
 	}
 
-	req, err := retryablehttp.NewRequest(http.MethodPost, url, &buf)
+	bodyBytes := buf.Bytes()
+
+	// Шифруем данные
+	if pubKey != nil {
+		encrypted, err := crypto.Encrypt(pubKey, bodyBytes)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt body: %w", err)
+		}
+		bodyBytes = encrypted
+	}
+
+	req, err := retryablehttp.NewRequest(http.MethodPost, url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

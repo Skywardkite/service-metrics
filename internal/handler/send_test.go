@@ -71,7 +71,7 @@ func Test_sendPlainPost(t *testing.T) {
 				tt.url = server.URL + tt.url
 			}
 
-			err := sendPlainPost(tt.client, tt.url, "test_key", tt.metric)
+			err := sendPlainPost(tt.client, tt.url, "test_key", tt.metric, nil)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errorMessage)

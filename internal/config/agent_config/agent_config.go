@@ -15,6 +15,7 @@ type AgentConfig struct {
 	UseBatch       bool
 	Key            string
 	RateLimit      int
+	CryptoKeyPath  string
 }
 
 func ParseFlags() (AgentConfig, error) {
@@ -27,6 +28,7 @@ func ParseFlags() (AgentConfig, error) {
 	flag.BoolVar(&cfg.UseBatch, "b", false, "use batch API")
 	flag.StringVar(&cfg.Key, "k", "", "hash key")
 	flag.IntVar(&cfg.RateLimit, "l", 1, "rate limit (max parallel requests)")
+	flag.StringVar(&cfg.CryptoKeyPath, "crypto-key", "", "path to public key")
 	flag.Parse()
 
 	if envFlagRunAddr, ok := os.LookupEnv("ADDRESS"); ok {
@@ -70,6 +72,10 @@ func ParseFlags() (AgentConfig, error) {
 			return cfg, fmt.Errorf("invalid RATE_LIMIT: %s", rateLimit)
 		}
 		cfg.RateLimit = num
+	}
+
+	if сryptoKeyPath, ok := os.LookupEnv("CRYPTO_KEY"); ok {
+		cfg.CryptoKeyPath = сryptoKeyPath
 	}
 
 	return cfg, nil

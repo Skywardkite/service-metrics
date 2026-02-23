@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,10 +11,11 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
+	"github.com/Skywardkite/service-metrics/internal/crypto"
 )
 
 // SendBatch отправляет batch запрос в сервис метрик для их записи.
-func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL, key string) error {
+func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, serverURL, key string, pubKey *rsa.PublicKey) error {
 	metrics := storage.ConvertToBatch()
 
 	// Не отправляем пустые батчи
@@ -39,7 +41,18 @@ func SendBatch(client *retryablehttp.Client, storage *agent.AgentMetrics, server
 
 	url := fmt.Sprintf("%s/updates/", serverURL)
 
-	req, err := retryablehttp.NewRequest("POST", url, &buf)
+	bodyBytes := buf.Bytes()
+
+	// Шифруем данные
+	if pubKey != nil {
+		encrypted, err := crypto.Encrypt(pubKey, bodyBytes)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt body: %w", err)
+		}
+		bodyBytes = encrypted
+	}
+
+	req, err := retryablehttp.NewRequest("POST", url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

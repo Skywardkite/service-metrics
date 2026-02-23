@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/rsa"
 	"log"
 	"strings"
 	"sync"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/Skywardkite/service-metrics/internal/agent"
 	agentConfig "github.com/Skywardkite/service-metrics/internal/config/agent_config"
+	"github.com/Skywardkite/service-metrics/internal/crypto"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 )
 
@@ -30,6 +32,16 @@ func (app *AgentApp) Run() {
 	url := app.cfg.FlagRunAddr
 	if !strings.HasPrefix(app.cfg.FlagRunAddr, "http://") && !strings.HasPrefix(app.cfg.FlagRunAddr, "https://") {
 		url = "http://" + app.cfg.FlagRunAddr
+	}
+
+	var pubKey *rsa.PublicKey
+	var err error
+
+	if app.cfg.CryptoKeyPath != "" {
+		pubKey, err = crypto.LoadPublicKey(app.cfg.CryptoKeyPath)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	jobs := make(chan struct{}, 10)
@@ -71,13 +83,13 @@ func (app *AgentApp) Run() {
 		}
 	}()
 
-	app.worker(jobs, store, client, &wg, url)
+	app.worker(jobs, store, client, &wg, url, pubKey)
 
 	wg.Wait()
 	close(jobs)
 }
 
-func (app *AgentApp) worker(jobs <-chan struct{}, store *agent.AgentMetrics, client *retryablehttp.Client, wg *sync.WaitGroup, url string) {
+func (app *AgentApp) worker(jobs <-chan struct{}, store *agent.AgentMetrics, client *retryablehttp.Client, wg *sync.WaitGroup, url string, pubKey *rsa.PublicKey) {
 	for i := 0; i < app.cfg.RateLimit; i++ {
 		wg.Add(1)
 		go func() {
@@ -86,12 +98,12 @@ func (app *AgentApp) worker(jobs <-chan struct{}, store *agent.AgentMetrics, cli
 			for range jobs {
 				if app.cfg.UseBatch {
 					// Батчевая отправка
-					err := handler.SendBatch(client, store, url, app.cfg.Key)
+					err := handler.SendBatch(client, store, url, app.cfg.Key, pubKey)
 					if err != nil {
 						log.Printf("Batch API failed, falling back to individual: %v", err)
 					}
 				} else {
-					handler.SendMetrics(client, store, url+"/update/", app.cfg.Key)
+					handler.SendMetrics(client, store, url+"/update/", app.cfg.Key, pubKey)
 				}
 			}
 		}()
