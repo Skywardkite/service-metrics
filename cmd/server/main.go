@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
 	"log"
 	"net/http"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/Skywardkite/service-metrics/internal/app"
 	"github.com/Skywardkite/service-metrics/internal/audit"
 	"github.com/Skywardkite/service-metrics/internal/config/server_config"
+	"github.com/Skywardkite/service-metrics/internal/crypto"
 	"github.com/Skywardkite/service-metrics/internal/filestorage"
 	"github.com/Skywardkite/service-metrics/internal/handler"
 	logger "github.com/Skywardkite/service-metrics/internal/logger"
@@ -33,9 +35,19 @@ func main() {
 	}
 	defer logger.Sync()
 
+	var privKey *rsa.PrivateKey
+	var err error
+
 	cfg, err := server_config.ParseFlags()
 	if err != nil {
 		logger.Sugar.Fatalw("Error to parse flags", "error", err)
+	}
+
+	if cfg.CryptoKeyPath != "" {
+		privKey, err = crypto.LoadPrivateKey(cfg.CryptoKeyPath)
+		if err != nil {
+			log.Fatalf("failed to load private key: %v", err)
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -84,7 +96,7 @@ func main() {
 	r.Use(func(next http.Handler) http.Handler {
 		return AuthMiddleware(cfg.Key, next)
 	})
-	r.Use(GzipMiddleware)
+	r.Use(GzipMiddleware(privKey))
 
 	r.Route("/debug/pprof", func(pp chi.Router) {
 		MountPprof(pp)

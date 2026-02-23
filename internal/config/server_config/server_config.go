@@ -17,6 +17,7 @@ type Config struct {
 	Key             string
 	AuditFile       string
 	AuditURL        string
+	CryptoKeyPath   string
 }
 
 func ParseFlags() (Config, error) {
@@ -30,6 +31,7 @@ func ParseFlags() (Config, error) {
 	flag.StringVar(&cfg.Key, "k", "", "hash key")
 	flag.StringVar(&cfg.AuditFile, "audit-file", "", "path to audit log file")
 	flag.StringVar(&cfg.AuditURL, "audit-url", "", "URL to send audit logs")
+	flag.StringVar(&cfg.CryptoKeyPath, "crypto-key", "", "path to public key")
 	flag.Parse()
 
 	if envFlagRunAddr, ok := os.LookupEnv("ADDRESS"); ok {
@@ -71,6 +73,10 @@ func ParseFlags() (Config, error) {
 
 	if envAuditURL, ok := os.LookupEnv("AUDIT_URL"); ok {
 		cfg.AuditURL = envAuditURL
+	}
+
+	if сryptoKeyPath, ok := os.LookupEnv("CRYPTO_KEY"); ok {
+		cfg.CryptoKeyPath = сryptoKeyPath
 	}
 
 	return cfg, nil
